@@ -4,22 +4,36 @@ import { Code, Users, Zap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { io } from "socket.io-client";
+
+const socket = io('http://localhost:4000', {
+    transports: ['websocket', 'polling']
+});
 
 export default function Home() {
     const [roomCode, setRoomCode] = useState("");
+    const [username, setUsername] = useState("bob");
     const router = useRouter();
+
+    useEffect(() => {
+        socket.on('roomJoined', ({ roomCode }) => {
+            router.push(`/room/${roomCode}/waitingroom`);
+        });
+        socket.on('error', (error) => {
+            console.error("Error:", error);
+        });
+    }, []);
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);
-        router.push(`/room/${roomCode}/waitingroom`);
+        socket.emit('joinRoom', { roomCode: roomCode, username: "bob3" });
     }
 
     const handleCreateGame = () => {
         console.log("Creating game");
-        const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        router.push(`/room/${roomCode}/waitingroom`);
+        socket.emit('createRoom', { username: "bob2" });
     }
 
     return (
