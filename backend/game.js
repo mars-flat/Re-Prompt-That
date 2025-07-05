@@ -26,7 +26,7 @@ class Game {
     endGame() {
         clearInterval(this.timerInterval);
         const rankings = Object.fromEntries(
-            Object.entries(obj).sort(([, v1], [, v2]) => v2 - v1)
+            Object.entries(this.players).sort(([, v1], [, v2]) => v2 - v1)
         );
         this.io.to(this.roomCode).emit('gameEnded', { winner: rankings });
     }
