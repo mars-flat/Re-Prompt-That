@@ -92,7 +92,7 @@ const rooms = {};
 const games = {};
 
 function generateRoomCode() {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 io.on('connection', (socket) => {
@@ -108,7 +108,11 @@ io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({ roomCode, username }) => {
     if (!rooms[roomCode]) {
-      socket.emit('error', 'Room not found');
+      socket.emit('error', { signal: "joinRoom", message: 'Room not found' });
+      return;
+    }
+    if (rooms[roomCode].has(username)) {
+      socket.emit('error', { signal: "joinRoom", message: 'Username already exists' });
       return;
     }
     rooms[roomCode].add(username);
