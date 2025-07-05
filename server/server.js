@@ -1,5 +1,8 @@
 const { Server } = require('socket.io');
+import OpenAI from "openai";
 const http = require('http');
+require('dotenv').config();
+
 
 const PORT = 4000;
 
@@ -9,6 +12,7 @@ const io = new Server(server, {
     origin: '*',
   },
 });
+const client = new OpenAI();
 
 const rooms = {};
 
@@ -50,6 +54,22 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
     }
+  });
+
+  // when the user sends a message, evaluate it using the openai api and calculate score
+  socket.on('sendMessage', async({ roomCode, message }) => {
+    const response = await client.responses.create({
+        model: "gpt-4o-mini",
+        input: [
+            {
+                role: "user",
+                content: message
+            }
+        ]
+    });
+    // do something to calculate the score
+    io.to(roomCode).emit('updateScore', { score: 10 });
+    socket.emit('chatResponse', { message: response.output_text });
   });
 });
 
