@@ -1,9 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Gaming-inspired design system with neon accents and dark theme
-All colors MUST be HSL.
-*/
-
+/* Gaming-inspired design system with neon accents and dark theme */
 @layer base {
   :root {
     --background: 220 13% 9%;
@@ -52,15 +51,6 @@ All colors MUST be HSL.
     --glow-success: 0 0 20px hsl(var(--neon-green) / 0.5);
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Font variables for Next.js integration */
     --font-sans: var(--font-geist-sans);
@@ -182,3 +172,4 @@ All colors MUST be HSL.
     color: hsl(var(--muted-foreground));
   }
 }
+

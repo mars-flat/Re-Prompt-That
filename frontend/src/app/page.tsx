@@ -18,7 +18,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 space-y-12">
       {/* Hero Section */}
       <div className="text-center space-y-4 animate-fade-in">
         <div className="inline-flex items-center gap-2 text-4xl font-bold glow-primary">
@@ -31,7 +31,7 @@ export default function Home() {
       </div>
 
       {/* Game Actions */}
-      <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-6 max-w-2xl w-full">
         {/* Join Game */}
         <Card className="bg-card/50 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-all hover:glow-primary">
           <CardHeader>
@@ -82,37 +82,37 @@ export default function Home() {
             </Button>
           </CardContent>
         </Card>
-
-        {/* How to Play */}
-        <Card className="bg-card/30 backdrop-blur-sm border-accent/20 max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center">How to Play</CardTitle>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-6 text-center">
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-xl font-bold text-primary">1</span>
-              </div>
-              <h3 className="font-semibold">See the Target</h3>
-              <p className="text-sm text-muted-foreground">You'll be shown a target string that needs to be generated</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-xl font-bold text-secondary">2</span>
-              </div>
-              <h3 className="font-semibold">Write the Prompt</h3>
-              <p className="text-sm text-muted-foreground">Craft the perfect prompt that would generate that exact string</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-xl font-bold text-accent">3</span>
-              </div>
-              <h3 className="font-semibold">Score Points</h3>
-              <p className="text-sm text-muted-foreground">Get points based on how likely your prompt would generate the target</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* How to Play */}
+      <Card className="bg-card/30 backdrop-blur-sm border-accent/20 max-w-4xl w-full">
+        <CardHeader>
+          <CardTitle className="text-center">How to Play</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-3 gap-6 text-center">
+          <div className="space-y-2">
+            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-xl font-bold text-primary">1</span>
+            </div>
+            <h3 className="font-semibold">See the Target</h3>
+            <p className="text-sm text-muted-foreground">You'll be shown a target string that needs to be generated</p>
+          </div>
+          <div className="space-y-2">
+            <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-xl font-bold text-secondary">2</span>
+            </div>
+            <h3 className="font-semibold">Write the Prompt</h3>
+            <p className="text-sm text-muted-foreground">Craft the perfect prompt that would generate that exact string</p>
+          </div>
+          <div className="space-y-2">
+            <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-xl font-bold text-accent">3</span>
+            </div>
+            <h3 className="font-semibold">Score Points</h3>
+            <p className="text-sm text-muted-foreground">Get points based on how likely your prompt would generate the target</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
