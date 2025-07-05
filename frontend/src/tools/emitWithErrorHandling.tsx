@@ -33,8 +33,8 @@ const emitWithErrorHandling = (socket: Socket, event: string, data: any) => {
         
         if (response?.error) {
             toast({
-                title: "Server Error",
-                description: response.error.message || response.error,
+                title: response.error.title,
+                description: response.error.message,
             });
         }
     });

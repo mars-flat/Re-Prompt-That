@@ -31,13 +31,11 @@ export default function Home() {
         socket.on('error', (error) => {
             console.log("Socket error:", error);
             toast({
-                title: "Socket Error",
-                description: error.message || error.toString(),
+                title: error.title,
+                description: error.message,
             });
         });
-
-
-        }, []);
+    }, []);
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);

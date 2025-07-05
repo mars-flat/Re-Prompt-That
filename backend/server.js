@@ -107,14 +107,28 @@ io.on('connection', (socket) => {
   });
 
   socket.on('joinRoom', ({ roomCode, username }) => {
+    // if game started
+    if (games[roomCode] && games[roomCode].started) {
+      console.log("Game already started");
+      socket.emit('error', { signal: "joinRoom", title: "Game already started", message: 'Please wait for the next game.' });
+      return;
+    }
+
+    // if room not found
     if (!rooms[roomCode]) {
-      socket.emit('error', { signal: "joinRoom", message: 'Room not found' });
+      console.log("Room not found");
+      socket.emit('error', { signal: "joinRoom", title: "Room not found", message: 'Please create a new room.' });
       return;
     }
+
+    // if username already exists
     if (rooms[roomCode].has(username)) {
-      socket.emit('error', { signal: "joinRoom", message: 'Username already exists' });
+      console.log("Username already exists");
+      socket.emit('error', { signal: "joinRoom", title: "Username already exists", message: 'Please choose a different username.' });
       return;
     }
+
+    console.log("Joining room", roomCode, username);
     rooms[roomCode].add(username);
     socket.join(roomCode);
     socket.data.username = username;
