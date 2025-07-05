@@ -1,5 +1,5 @@
 const { Server } = require('socket.io');
-import OpenAI from "openai";
+const OpenAI = require("openai");
 const http = require('http');
 require('dotenv').config();
 
