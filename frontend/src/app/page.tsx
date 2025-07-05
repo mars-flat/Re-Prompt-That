@@ -16,11 +16,13 @@ const socket = io('http://localhost:4000', {
 
 export default function Home() {
     const [roomCode, setRoomCode] = useState("");
-    const [username, setUsername] = useState("bob");
+    const [joinGameUsername, setJoinGameUsername] = useState("");
+    const [createGameUsername, setCreateGameUsername] = useState("");
+
     const router = useRouter();
     const { toast } = useToast();
 
-    useEffect(() => {
+    useEffect(() => {   
         socket.on('roomJoined', ({ roomCode }) => {
             console.log("Room joined:", roomCode);
             router.push(`/room/${roomCode}/waitingroom`);
@@ -39,12 +41,12 @@ export default function Home() {
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);
-        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: "bob3" });
+        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: joinGameUsername });
     }
 
     const handleCreateGame = () => {
         console.log("Creating game");
-        emitWithErrorHandling(socket, 'createRoom', { username: "bob2" });
+        emitWithErrorHandling(socket, 'createRoom', { username: createGameUsername });
     }
 
     return (
@@ -82,6 +84,13 @@ export default function Home() {
                             maxLength={6}
                             onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
                         />
+                        <Input
+                            placeholder="Enter username..."
+                            value={joinGameUsername}
+                            onChange={(e) => setJoinGameUsername(e.target.value)}
+                            className="text-center text-lg font-mono tracking-wider"
+                            onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
+                        />
                         <Button 
                             onClick={handleJoinGame} 
                             className="w-full gradient-primary text-primary-foreground font-semibold hover:scale-105 transition-all"
@@ -103,7 +112,15 @@ export default function Home() {
                             Start a new game and invite friends
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <div className="text-center text-sm text-muted-foreground h-10"></div>
+                        <Input
+                            placeholder="Enter username..."
+                            value={createGameUsername}
+                            onChange={(e) => setCreateGameUsername(e.target.value)}
+                            className="text-center text-lg font-mono tracking-wider"
+                            onKeyDown={(e) => e.key === "Enter" && handleCreateGame()}
+                        />
                         <Button 
                             onClick={handleCreateGame}
                             className="w-full bg-secondary text-secondary-foreground font-semibold hover:scale-105 transition-all glow-secondary"

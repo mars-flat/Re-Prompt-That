@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Users, Crown, Copy, Check } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 interface Player {
     id: string;
@@ -16,7 +16,7 @@ interface Player {
 const WaitingRoom = () => {
     const params = useParams();
     const roomCode = params.roomId as string;
-    
+    const router = useRouter();
     const [copied, setCopied] = useState(false);
     const [players, setPlayers] = useState<Player[]>([]);
     const [isHost, setIsHost] = useState(false);
@@ -36,6 +36,7 @@ const WaitingRoom = () => {
 
     const onLeaveRoom = () => {
         console.log('Leaving room');
+        router.push('/');
     };
 
     // Generate particles on client-side only to avoid hydration mismatch
