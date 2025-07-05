@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const OpenAI = require("openai");
 const http = require('http');
+const Game = require('./game');
 require('dotenv').config();
 
 
@@ -22,6 +23,7 @@ if (!hasOpenAIKey) {
 }
 
 const rooms = {};
+const games = {};
 
 function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
@@ -61,6 +63,12 @@ io.on('connection', (socket) => {
         io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
     }
+  });
+
+  socket.on('startGame', ({ roomCode }) => {
+    games[roomCode] = new Game(io, roomCode, rooms[roomCode]);
+    games[roomCode].startGame();
+    io.to(roomCode).emit('startGame');
   });
 
   // when the user sends a message, evaluate it using the openai api and calculate score
