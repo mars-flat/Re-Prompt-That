@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
+import { useToast } from "@/hooks/use-toast";
+import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
 
 const socket = io('http://localhost:4000', {
     transports: ['websocket', 'polling']
@@ -16,24 +18,33 @@ export default function Home() {
     const [roomCode, setRoomCode] = useState("");
     const [username, setUsername] = useState("bob");
     const router = useRouter();
+    const { toast } = useToast();
 
     useEffect(() => {
         socket.on('roomJoined', ({ roomCode }) => {
+            console.log("Room joined:", roomCode);
             router.push(`/room/${roomCode}/waitingroom`);
         });
+
         socket.on('error', (error) => {
-            console.error("Error:", error);
+            console.log("Socket error:", error);
+            toast({
+                title: "Socket Error",
+                description: error.message || error.toString(),
+            });
         });
-    }, []);
+
+
+        }, []);
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);
-        socket.emit('joinRoom', { roomCode: roomCode, username: "bob3" });
+        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: "bob3" });
     }
 
     const handleCreateGame = () => {
         console.log("Creating game");
-        socket.emit('createRoom', { username: "bob2" });
+        emitWithErrorHandling(socket, 'createRoom', { username: "bob2" });
     }
 
     return (
