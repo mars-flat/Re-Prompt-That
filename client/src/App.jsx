@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('/', {
-  path: '/socket.io',
+const socket = io('http://localhost:4000', {
   transports: ['websocket', 'polling']
 });
 
