@@ -1,5 +1,8 @@
 const { Server } = require('socket.io');
+const OpenAI = require("openai");
 const http = require('http');
+require('dotenv').config();
+
 
 const PORT = 4000;
 
@@ -9,6 +12,14 @@ const io = new Server(server, {
     origin: '*',
   },
 });
+
+// Check if OpenAI API key is available
+const hasOpenAIKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
+const client = hasOpenAIKey ? new OpenAI() : null;
+
+if (!hasOpenAIKey) {
+  console.log('⚠️  Warning: OPENAI_API_KEY not found. AI features will be disabled.');
+}
 
 const rooms = {};
 
@@ -51,9 +62,39 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  // when the user sends a message, evaluate it using the openai api and calculate score
+  socket.on('sendMessage', async({ roomCode, message }) => {
+    if (!hasOpenAIKey) {
+      socket.emit('chatResponse', { 
+        message: 'AI features are disabled. Please set OPENAI_API_KEY environment variable.' 
+      });
+      return;
+    }
+
+    try {
+      const response = await client.responses.create({
+          model: "gpt-4o-mini",
+          input: [
+              {
+                  role: "user",
+                  content: message
+              }
+          ]
+      });
+      // do something to calculate the score
+      io.to(roomCode).emit('updateScore', { score: 10 });
+      socket.emit('chatResponse', { message: response.output_text });
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      socket.emit('chatResponse', { 
+        message: 'Sorry, there was an error processing your message. Please try again.' 
+      });
+    }
+  });
 });
 
 // ✅ Start server and log a message
-server.listen(PORT, () => {
-  console.log(`✅ Socket.IO server is running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Socket.IO server is running on port ${PORT}`);
 });
