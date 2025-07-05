@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Gaming-inspired design system with neon accents and dark theme
 All colors MUST be HSL.
@@ -54,131 +56,83 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Font variables for Next.js integration */
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  
   /* Gaming animations */
   @keyframes glow-pulse {
     0%, 100% { filter: drop-shadow(var(--glow-primary)); }
     50% { filter: drop-shadow(var(--glow-secondary)); }
   }
-
+  
   @keyframes timer-warning {
     0%, 100% { color: hsl(var(--warning-orange)); transform: scale(1); }
     50% { color: hsl(var(--danger-red)); transform: scale(1.05); }
   }
-
+  
   @keyframes score-bump {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); filter: drop-shadow(var(--glow-success)); }
-  }
-
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes logo-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: var(--font-mono);
+    @apply bg-background text-foreground font-mono;
   }
-}
-
-@layer utilities {
+  
   /* Gaming utility classes */
   .glow-primary {
     filter: drop-shadow(var(--glow-primary));
   }
-
+  
   .glow-secondary {
     filter: drop-shadow(var(--glow-secondary));
   }
-
+  
   .glow-success {
     filter: drop-shadow(var(--glow-success));
   }
-
+  
   .gradient-primary {
     background: var(--gradient-primary);
   }
-
+  
   .gradient-neon {
     background: var(--gradient-neon);
   }
-
+  
   .gradient-danger {
     background: var(--gradient-danger);
   }
-
+  
   .animate-glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
   }
-
+  
   .animate-timer-warning {
     animation: timer-warning 1s ease-in-out infinite;
   }
-
+  
   .animate-score-bump {
     animation: score-bump 0.3s ease-out;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
-  }
-
-  /* Logo styles */
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-
-  .logo:hover {
-    filter: drop-shadow(0 0 2em hsl(var(--electric-blue) / 0.7));
-  }
-
-  .logo.react:hover {
-    filter: drop-shadow(0 0 2em hsl(var(--neon-green) / 0.7));
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    a:nth-of-type(2) .logo {
-      animation: logo-spin infinite 20s linear;
-    }
-  }
-
-  /* Utility classes */
-  .app-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
-    text-align: center;
-  }
-
-  .read-the-docs {
-    color: hsl(var(--muted-foreground));
   }
 }
