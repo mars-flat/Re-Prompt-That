@@ -95,6 +95,6 @@ io.on('connection', (socket) => {
 });
 
 // ✅ Start server and log a message
-server.listen(PORT, () => {
-  console.log(`✅ Socket.IO server is running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Socket.IO server is running on port ${PORT}`);
 });
