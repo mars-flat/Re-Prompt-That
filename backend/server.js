@@ -1,58 +1,59 @@
-const express = require('express');
-const http = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: 'http://localhost:3000' } // React runs on 3000
-});
-
-app.use(cors());
-app.use(express.json());
+const http = require('http');
 
 const PORT = 4000;
+
+const server = http.createServer();
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+const rooms = {};
 
 function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-const activeRooms = new Set();
-
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('createRoom', (cb) => {
-    let roomCode;
-    do {
-      roomCode = generateRoomCode();
-    } while (activeRooms.has(roomCode));
-    activeRooms.add(roomCode);
+  socket.on('createRoom', ({ username }) => {
+    const roomCode = generateRoomCode();
+    rooms[roomCode] = new Set([username]);
     socket.join(roomCode);
-    cb({ roomCode });
+    socket.data.username = username;
+    socket.data.roomCode = roomCode;
+    socket.emit('roomJoined', { roomCode });
+    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
   });
 
-  socket.on('joinRoom', (roomCode, cb) => {
-    const rooms = io.sockets.adapter.rooms;
-    if (rooms.has(roomCode)) {
-      socket.join(roomCode);
-      io.to(roomCode).emit('userJoined', roomCode);
-      cb({ success: true });
-    } else {
-      cb({ success: false, error: 'Room not found' });
+  socket.on('joinRoom', ({ roomCode, username }) => {
+    if (!rooms[roomCode]) {
+      socket.emit('error', 'Room not found');
+      return;
     }
+    rooms[roomCode].add(username);
+    socket.join(roomCode);
+    socket.data.username = username;
+    socket.data.roomCode = roomCode;
+    socket.emit('roomJoined', { roomCode });
+    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
   });
 
-  socket.on('disconnecting', () => {
-    for (const room of socket.rooms) {
-      if (room !== socket.id && io.sockets.adapter.rooms.get(room)?.size === 1) {
-        activeRooms.delete(room); // Clean up
+  socket.on('disconnect', () => {
+    const { username, roomCode } = socket.data || {};
+    if (username && roomCode && rooms[roomCode]) {
+      rooms[roomCode].delete(username);
+      if (rooms[roomCode].size === 0) {
+        delete rooms[roomCode];
+      } else {
+        io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
     }
   });
 });
 
+// ✅ Start server and log a message
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Socket.IO server is running on http://localhost:${PORT}`);
 });
