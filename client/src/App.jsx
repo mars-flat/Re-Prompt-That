@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('http://100.26.52.167/api', { transports: ['websocket'] });
+const socket = io({
+  path: '/socket.io/',
+  transports: ['websocket', 'polling']
+});
 
 function App() {
   const [username, setUsername] = useState('');
