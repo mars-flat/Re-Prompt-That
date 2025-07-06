@@ -55,6 +55,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [currentTarget, setCurrentTarget] = useState("");
     const [progressPercentage, setProgressPercentage] = useState(100);
 
+
     useEffect(() => {
         socket.on('error', (error) => {
             console.log("Socket error:", error);

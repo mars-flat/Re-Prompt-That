@@ -15,6 +15,7 @@ class Game {
         this.players = Array.from(players).map(username => new Player(username));
         this.playersReady = new Set();
         this.allQuestions = questions.sort(() => Math.random() - 0.5);
+        this.queriesActive = 0;
     }
 
     startGame() {
@@ -69,6 +70,10 @@ class Game {
             rankings: finalRankings,
             winner: finalRankings.length > 0 ? finalRankings[0] : null
         });
+
+        if(this.isQueryingDone()){
+            this.io.to(this.roomCode).emit('goToResultsPage');
+        }
     }
 
     async handlePromptSubmission(username, aiResponse, userPrompt) {
@@ -126,6 +131,14 @@ class Game {
 
     isLobbyReady(){
         return this.playersReady.size == this.players.length;
+    }
+
+    updateQueriesActive(amount){
+        this.queriesActive += amount;
+    }
+
+    isQueryingDone(){
+        return this.queriesActive == 0;
     }
 
     getPlayersByScoreDescending() {
