@@ -15,7 +15,7 @@ import { useGame } from "@/contexts/GameContext";
 
 
 const Game = () => {
-  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage } = useGame();
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score } = useGame();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
@@ -124,7 +124,7 @@ const Game = () => {
                 </Card>
               </div>
 
-              {/* Leaderboard
+              {/* Leaderboard */}
               <div className="space-y-6">
                 <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
                   <CardHeader>
@@ -134,11 +134,11 @@ const Game = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {sortedPlayers.map((player, index) => (
+                    {leaderboard.map((player, index) => (
                       <div 
                         key={index}
                         className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                          player.id === "1" ? 'bg-primary/10 border border-primary/20' : 'bg-muted/20'
+                          player.username === username ? 'bg-primary/10 border border-primary/20' : 'bg-muted/20'
                         } ${index === 0 ? 'glow-success animate-glow-pulse' : ''}`}
                       >
                         <div className="flex items-center gap-3">
@@ -151,12 +151,7 @@ const Game = () => {
                             {index + 1}
                           </div>
                           <div>
-                            <div className="font-semibold">{player.name}</div>
-                            {player.lastPrompt && (
-                              <div className="text-xs text-muted-foreground truncate max-w-32">
-                                "{player.lastPrompt}"
-                              </div>
-                            )}
+                            <div className="font-semibold">{player.username}</div>
                           </div>
                         </div>
                         <div className={`text-lg font-bold ${index === 0 ? 'animate-score-bump' : ''}`}>
@@ -166,8 +161,10 @@ const Game = () => {
                     ))}
                   </CardContent>
                 </Card>
+              </div>
 
-            <Card className="bg-card/30 backdrop-blur-sm">
+              {/* Recent Submissions */}
+            {/* <Card className="bg-card/30 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-sm">Recent Submissions</CardTitle>
               </CardHeader>
@@ -179,7 +176,7 @@ const Game = () => {
                   </div>
                 ))}
               </CardContent>
-            </Card> */}
+            </Card>  */}
             </div>
           </div>
         </div>
