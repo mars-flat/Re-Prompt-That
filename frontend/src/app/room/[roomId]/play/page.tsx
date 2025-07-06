@@ -32,7 +32,64 @@ const Game = () => {
     });
 
     emitWithErrorHandling(socket, 'playerReady', { roomCode: roomCode, username: username });
+
+    // Anti-cheat measures
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable copy/paste/cut shortcuts
+      if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+        e.preventDefault();
+      }
+      // Disable F12 developer tools
+      // if (e.key === 'F12') {
+      //   e.preventDefault();
+      // }
+      // Disable Ctrl+Shift+I (developer tools)
+      // if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+      //   e.preventDefault();
+      // }
+      // Disable Ctrl+U (view source)
+      // if (e.ctrlKey && e.key === 'u') {
+      //   e.preventDefault();
+      // }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+    };
+
+    const handlePaste = (e: ClipboardEvent) => {
+      // Allow paste only in the prompt input
+      const target = e.target as HTMLElement;
+      if (!target.closest('input[placeholder*="Write the perfect prompt"]')) {
+        e.preventDefault();
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('paste', handlePaste);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('paste', handlePaste);
+    };
   }, []);
+
+  // Disable prompt submission when game is not playing or time runs out
+  useEffect(() => {
+    if (gameState !== "playing" || timeLeft <= 0) {
+      setCanSubmitPrompt(false);
+    }
+  }, [gameState, timeLeft, setCanSubmitPrompt]);
 
   
   const handleSubmitPrompt = () => {
@@ -49,7 +106,14 @@ const Game = () => {
   return (
     <>
       {gameState === "playing" && (
-        <div className="min-h-screen bg-background p-4">
+        <div className="min-h-screen bg-background p-4 select-none" style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent'
+        }}>
           <div className="max-w-6xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -100,7 +164,12 @@ const Game = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-xl font-mono bg-muted/50 p-4 rounded-lg text-center">
+                    <div className="text-xl font-mono bg-muted/50 p-4 rounded-lg text-center" style={{
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}>
                       "{currentTarget}"
                     </div>
                   </CardContent>
@@ -119,6 +188,12 @@ const Game = () => {
                       className="text-lg p-4 h-auto"
                       onKeyDown={(e) => e.key === "Enter" && handleSubmitPrompt()}
                       disabled={gameState !== "playing" || !canSubmitPrompt}
+                      style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text'
+                      }}
                     />
                     <Button 
                       onClick={handleSubmitPrompt}

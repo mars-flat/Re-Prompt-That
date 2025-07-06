@@ -26,6 +26,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head> <link rel="icon" href="/dog.gif" type="image/gif" />
+        </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <GameProviderWrapper>
           {children}
