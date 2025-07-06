@@ -149,9 +149,6 @@ io.on('connection', (socket) => {
         title: "Game not active", 
         message: 'No active game in this room.' 
       });
-      if(!games[roomCode].isGameActive() && games[roomCode].isQueryingDone()){
-        io.to(roomCode).emit('goToResultsPage');
-      }
       return;
     }
 
@@ -192,11 +189,10 @@ io.on('connection', (socket) => {
           leaderboard: result.leaderboard,
           score: result.score
         });
-
-        games[roomCode].updateQueriesActive(-1);
-        if(!games[roomCode].isGameActive() && games[roomCode].isQueryingDone()){
-            io.to(roomCode).emit('goToResultsPage');
-        }
+      }
+      games[roomCode].updateQueriesActive(-1);
+      if(!games[roomCode].isGameActive() && games[roomCode].isQueryingDone()){
+        io.to(roomCode).emit('goToResultsPage');
       }
     } catch (error) {
       games[roomCode].updateQueriesActive(-1);
