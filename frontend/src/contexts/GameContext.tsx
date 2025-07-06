@@ -33,6 +33,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isHost, setIsHost] = useState<boolean>(true);
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
 
+    // Game state variables
+    const [round, setRound] = useState(1);
+    const [timeLeft, setTimeLeft] = useState(60);
+    const [currentTarget, setCurrentTarget] = useState("");
+    const [progressPercentage, setProgressPercentage] = useState(100);
+
     useEffect(() => {
         // Listen for username updates from server
         socket.on("getUsername", (receivedUsername: string) => {
@@ -47,9 +53,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         // Listen for game state changes
-        socket.on("startGame", () => {
+        socket.on("gameStarted", (currentQuestion: string) => {
             console.log("Game starting - updating context");
             setGameState('playing');
+            setCurrentTarget(currentQuestion);
+        });
+
+        socket.on("timerMessage", (timeLeft: number) => {
+            console.log("Timer message received:", timeLeft);
+            setTimeLeft(timeLeft);
         });
 
         socket.on("gameEnd", () => {

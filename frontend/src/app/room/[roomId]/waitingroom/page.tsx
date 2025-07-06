@@ -28,13 +28,13 @@ const WaitingRoom = () => {
 
         // Note: updateUserList and getUsername are now handled by GameContext
         // but we still need the startGame listener for navigation
-        socket.on("startGame", () => {
+        socket.on("goToStartGame", () => {
             console.log("Starting game");
             router.push(`/room/${roomCode}/play`);
         });
 
         return () => {
-            socket.off("startGame");
+            socket.off("goToStartGame");
         };
     }, [roomCode, setRoomCode, router]);
    

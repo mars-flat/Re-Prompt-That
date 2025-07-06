@@ -133,6 +133,7 @@ io.on('connection', (socket) => {
       return;
     }
     */
+   console.log(games, games[roomCode], "roomCode", roomCode, "username", username)
     games[roomCode].updateReadyCheck(username);
     if(games[roomCode].isLobbyReady()){
         games[roomCode].startGame();

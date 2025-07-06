@@ -13,99 +13,35 @@ import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
 import socket from "@/tools/mysocket";
 import { useGame } from "@/contexts/GameContext";
 
-// Mock data for demonstration
-const TARGET_STRINGS = [
-  "The quick brown fox jumps over the lazy dog",
-  "To be or not to be, that is the question",
-  "Hello, World!",
-  "The future is bright and full of possibilities",
-  "Machine learning will revolutionize everything"
-];
-
-interface Player {
-  id: string;
-  name: string;
-  score: number;
-  lastPrompt?: string;
-}
 
 const Game = () => {
-  const { roomCode } = useParams<{ roomCode: string }>();
-  const [currentTarget, setCurrentTarget] = useState(TARGET_STRINGS[0]);
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState } = useGame();
   const [prompt, setPrompt] = useState("");
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [round, setRound] = useState(1);
-
-  const [isGameActive, setIsGameActive] = useState(true);
-  const { username, setUsername, players, setPlayers, isHost, setIsHost, gameState } = useGame();
 
   useEffect(() => {
     console.log("Players", players);
-    console.log("Username", username);
+    console.log("Username", username)
     console.log("Is Host", isHost);
     console.log("Game State", gameState);
+
+    emitWithErrorHandling(socket, 'playerReady', { roomCode: roomCode, username: username });
   }, []);
-
-  // Timer effect
-  useEffect(() => {
-    if (!isGameActive || timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleRoundEnd();
-          return 60;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isGameActive, timeLeft]);
 
   
   const handleSubmitPrompt = () => {
     if (!prompt.trim()) return;
 
-    emitWithErrorHandling(socket, 'sendMessage', { message: prompt });
-
+    emitWithErrorHandling(socket, 'sendMessage', { roomCode: roomCode, username: username, message: prompt });
 
     setPrompt("");
   };
 
-  const calculateSimilarity = (prompt: string, target: string): number => {
-    // Mock similarity calculation - in real game, this would use NLP
-    const promptWords = prompt.toLowerCase().split(' ');
-    const targetWords = target.toLowerCase().split(' ');
-    const overlap = promptWords.filter(word => targetWords.some(t => t.includes(word) || word.includes(t)));
-    return Math.min(overlap.length / targetWords.length + Math.random() * 0.3, 1);
-  };
-
-  const handleRoundEnd = () => {
-    // Award bonus points to AI players
-    setPlayers(prev => prev.map(p => {
-      if (p.id !== "1" && p.lastPrompt) {
-        return { ...p, score: p.score + Math.floor(Math.random() * 80) + 20 };
-      }
-      return p;
-    }));
-
-    // Start new round
-    setRound(prev => prev + 1);
-    setCurrentTarget(TARGET_STRINGS[Math.floor(Math.random() * TARGET_STRINGS.length)]);
-    setPlayers(prev => prev.map(p => ({ ...p, lastPrompt: undefined })));
-    setTimeLeft(60);
-
-    toast({
-      title: "New Round!",
-      description: `Round ${round + 1} has begun!`
-    });
-  };
-
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
-  const progressPercentage = (timeLeft / 60) * 100;
-
+  
+  
+  
   return (
+    <>
+    {gameState === "playing" && (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
@@ -188,48 +124,48 @@ const Game = () => {
             </Card>
           </div>
 
-          {/* Leaderboard */}
-          <div className="space-y-6">
-            <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Leaderboard
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {sortedPlayers.map((player, index) => (
-                  <div 
-                    key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                      player.id === "1" ? 'bg-primary/10 border border-primary/20' : 'bg-muted/20'
-                    } ${index === 0 ? 'glow-success animate-glow-pulse' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        index === 0 ? 'bg-accent text-accent-foreground' :
-                        index === 1 ? 'bg-secondary/20 text-secondary' :
-                        index === 2 ? 'bg-warning-orange/20 text-warning-orange' :
-                        'bg-muted/50 text-muted-foreground'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-semibold">{player.name}</div>
-                        {player.lastPrompt && (
-                          <div className="text-xs text-muted-foreground truncate max-w-32">
-                            "{player.lastPrompt}"
+              {/* Leaderboard */}
+              <div className="space-y-6">
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5" />
+                      Leaderboard
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {sortedPlayers.map((player, index) => (
+                      <div 
+                        key={index}
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                          player.id === "1" ? 'bg-primary/10 border border-primary/20' : 'bg-muted/20'
+                        } ${index === 0 ? 'glow-success animate-glow-pulse' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                            index === 0 ? 'bg-accent text-accent-foreground' :
+                            index === 1 ? 'bg-secondary/20 text-secondary' :
+                            index === 2 ? 'bg-warning-orange/20 text-warning-orange' :
+                            'bg-muted/50 text-muted-foreground'
+                          }`}>
+                            {index + 1}
                           </div>
-                        )}
+                          <div>
+                            <div className="font-semibold">{player.name}</div>
+                            {player.lastPrompt && (
+                              <div className="text-xs text-muted-foreground truncate max-w-32">
+                                "{player.lastPrompt}"
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className={`text-lg font-bold ${index === 0 ? 'animate-score-bump' : ''}`}>
+                          {player.score}
+                        </div>
                       </div>
-                    </div>
-                    <div className={`text-lg font-bold ${index === 0 ? 'animate-score-bump' : ''}`}>
-                      {player.score}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                    ))}
+                  </CardContent>
+                </Card>
 
             {/* Recent Activity */}
             <Card className="bg-card/30 backdrop-blur-sm">
@@ -249,6 +185,8 @@ const Game = () => {
         </div>
       </div>
     </div>
+    )}
+    </>
   );
 };
 
