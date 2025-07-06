@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Users, Crown, Copy, Check } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import emitWithErrorHandling from '@/tools/emitWithErrorHandling';
 import socket from '@/tools/mysocket';
 
 const WaitingRoom = () => {
@@ -18,6 +19,13 @@ const WaitingRoom = () => {
     const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string }[]>([]);
 
     useEffect(() => {
+
+        emitWithErrorHandling(socket, 'getUserList', { roomCode: roomCode });
+
+        socket.on('roomJoined', (roomCode: string) => {
+            console.log(`Room is joined ${roomCode}`);
+        });
+
         socket.on('updateUserList', (userList: any) => {
             console.log("User list updated", userList);
             setPlayers(userList);
