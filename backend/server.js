@@ -163,6 +163,7 @@ io.on('connection', (socket) => {
 
     try {
       // First, send the user's prompt to GPT to get an AI response
+      games[roomCode].updateQueriesActive(1);
       const aiResponse = await queryGPT(prompt, client);
       
       // Then calculate score by comparing AI response with the current question
@@ -176,6 +177,7 @@ io.on('connection', (socket) => {
         });
       } else {
         socket.emit('promptScored', { 
+          username: username,
           score: result.score,
           leaderboard: result.leaderboard,
           aiResponse: aiResponse,
@@ -187,8 +189,14 @@ io.on('connection', (socket) => {
           leaderboard: result.leaderboard,
           score: result.score
         });
+
+        games[roomCode].updateQueriesActive(-1);
+        if(!games[roomCode].isGameActive() && games[roomCode].isQueryingDone()){
+            io.to(roomCode).emit('goToResultsPage');
+        }
       }
     } catch (error) {
+      games[roomCode].updateQueriesActive(-1);
       console.error('Error handling prompt submission:', error);
       socket.emit('error', { 
         signal: "submitPrompt", 
