@@ -11,21 +11,15 @@ import Image from "next/image";
 import { useGame } from '@/contexts/GameContext';
 
 interface PlayerScore {
-    name: string;
+    username: string;
     score: number;
-    totalRounds: number;
 }
 
 const ResultsPage = () => {
     const params = useParams();
     const roomCode = params.roomId as string;
     const router = useRouter();
-    const [leaderboard, setLeaderboard] = useState<PlayerScore[]>([
-        { name: "Alice", score: 850, totalRounds: 5 },
-        { name: "Bob", score: 720, totalRounds: 5 },
-        { name: "Charlie", score: 650, totalRounds: 5 },
-        { name: "Diana", score: 580, totalRounds: 5 },
-    ]);
+    const [leaderboard, setLeaderboard] = useState<PlayerScore[]>([]);
     const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string }[]>([]);
     
     // Use game context
@@ -39,7 +33,7 @@ const ResultsPage = () => {
         // TODO: Get actual game results from server
         emitWithErrorHandling(socket, 'getGameResults', { roomCode: roomCode });
 
-        socket.on('gameResults', (results: any) => {
+        socket.on('gameResults', ({ results }) => {
             console.log("Game results received", results);
             setLeaderboard(results);
         });
@@ -60,11 +54,13 @@ const ResultsPage = () => {
 
     const onPlayAgain = () => {
         console.log('Play again');
+        console.log(socket);
         router.push(`/room/${roomCode}/waitingroom`);
     };
 
     const onReturnHome = () => {
         console.log('Return to home');
+        console.log(socket);
         router.push('/');
     };
 
@@ -104,7 +100,7 @@ const ResultsPage = () => {
                                         <Crown className="h-16 w-16 text-yellow-500 animate-bounce" />
                                         <div>
                                             <h2 className="text-3xl font-bold text-foreground mb-2">🎉 Winner! 🎉</h2>
-                                            <p className="text-xl text-accent font-semibold">{leaderboard[0]?.name}</p>
+                                            <p className="text-xl text-accent font-semibold">{leaderboard[0]?.username}</p>
                                             <p className="text-lg text-muted-foreground">{leaderboard[0]?.score} points</p>
                                         </div>
                                         <Crown className="h-16 w-16 text-yellow-500 animate-bounce" style={{ animationDelay: '0.2s' }} />
@@ -163,10 +159,10 @@ const ResultsPage = () => {
                                             </div>
                                             <div>
                                                 <div className={`font-semibold ${
-                                                    player.name === username ? 'text-primary' : 'text-foreground'
+                                                    player.username === username ? 'text-primary' : 'text-foreground'
                                                 }`}>
-                                                    {player.name}
-                                                    {player.name === username && ' (You)'}
+                                                    {player.username}
+                                                    {player.username === username && ' (You)'}
                                                 </div>
                                                 <div className="text-sm text-muted-foreground">
                                                     {player.score} pts

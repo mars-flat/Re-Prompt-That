@@ -140,6 +140,10 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('getGameResults', ({ roomCode }) => {
+    socket.emit('gameResults', {results: games[roomCode].getPlayersByScoreDescending()});
+  });
+
   // Game-specific prompt submission with automatic scoring
   socket.on('submitPrompt', async({ roomCode, username, prompt }) => {
     console.log("Submitting prompt:", roomCode, username, prompt);
