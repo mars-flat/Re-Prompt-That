@@ -210,7 +210,7 @@ const Game = () => {
 
               {/* Leaderboard */}
               <div className="space-y-6">
-                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success overflow-y-auto h-[393px]">
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success overflow-y-auto h-[450px]">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="w-5 h-5" />
