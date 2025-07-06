@@ -26,6 +26,14 @@ function App() {
   // Game state
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [isGameActive, setIsGameActive] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [gamePrompt, setGamePrompt] = useState('');
+  const [lastScore, setLastScore] = useState(null);
+  const [isSubmittingPrompt, setIsSubmittingPrompt] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [finalRankings, setFinalRankings] = useState(null);
+  const [lastAiResponse, setLastAiResponse] = useState('');
+  const [userScores, setUserScores] = useState({});
 
   useEffect(() => {
     // Connection status handlers
@@ -53,10 +61,20 @@ function App() {
 
     socket.on('updateUserList', (userList) => {
       setUsers(userList);
+      // Initialize scores for new users
+      const newScores = {};
+      userList.forEach(user => {
+        if (!userScores[user]) {
+          newScores[user] = 0;
+        } else {
+          newScores[user] = userScores[user];
+        }
+      });
+      setUserScores(prev => ({ ...prev, ...newScores }));
     });
 
     socket.on('error', (error) => {
-      setErrorMessage(error);
+      setErrorMessage(error.message || error);
       setIsLoading(false);
     });
 
@@ -72,6 +90,17 @@ function App() {
     socket.on('gameStarted', ({currentQuestion}) => {
         setCurrentQuestion(currentQuestion);
         setIsGameActive(true);
+        setGameEnded(false);
+        setFinalRankings(null);
+        setLeaderboard([]);
+        setLastScore(null);
+        setLastAiResponse('');
+        // Reset all user scores when game starts
+        const resetScores = {};
+        users.forEach(user => {
+          resetScores[user] = 0;
+        });
+        setUserScores(resetScores);
         console.log('Game started with question:', currentQuestion);
     })
 
@@ -80,6 +109,40 @@ function App() {
         setIsCalculating(false);
     })
 
+    // New game-related socket events
+    socket.on('promptScored', ({score, leaderboard, aiResponse, userPrompt}) => {
+        setLastScore(score);
+        setLeaderboard(leaderboard);
+        setLastAiResponse(aiResponse);
+        setIsSubmittingPrompt(false);
+        setGamePrompt('');
+        
+        // Update user scores from leaderboard
+        const newScores = {};
+        leaderboard.forEach(player => {
+          newScores[player.username] = player.score;
+        });
+        setUserScores(prev => ({ ...prev, ...newScores }));
+    });
+
+    socket.on('updateLeaderboard', ({leaderboard, playerScore, username}) => {
+        setLeaderboard(leaderboard);
+        
+        // Update user scores from leaderboard
+        const newScores = {};
+        leaderboard.forEach(player => {
+          newScores[player.username] = player.score;
+        });
+        setUserScores(prev => ({ ...prev, ...newScores }));
+    });
+
+    socket.on('gameEnded', ({rankings, winner}) => {
+        setIsGameActive(false);
+        setGameEnded(true);
+        setFinalRankings(rankings);
+        setTimer(0);
+    });
+
     return () => {
       socket.off('connect');
       socket.off('disconnect');
@@ -87,8 +150,15 @@ function App() {
       socket.off('roomJoined');
       socket.off('updateUserList');
       socket.off('error');
+      socket.off('chatResponse');
+      socket.off('timerMessage');
+      socket.off('gameStarted');
+      socket.off('scoreCalculated');
+      socket.off('promptScored');
+      socket.off('updateLeaderboard');
+      socket.off('gameEnded');
     };
-  }, []);
+  }, [users, userScores]);
 
   const handleCreate = () => {
     if (!username.trim()) {
@@ -145,6 +215,30 @@ function App() {
     setCalculatedScore(null);
     setErrorMessage('');
     socket.emit('calculateScore', { string1: string1.trim(), string2: string2.trim() });
+  };
+
+  const handleSubmitGamePrompt = () => {
+    if (!gamePrompt.trim()) {
+      setErrorMessage('Please enter a prompt');
+      return;
+    }
+    setIsSubmittingPrompt(true);
+    setErrorMessage('');
+    socket.emit('submitPrompt', { 
+      roomCode: joinedRoom, 
+      username, 
+      prompt: gamePrompt.trim() 
+    });
+  };
+
+  const resetGame = () => {
+    setGameEnded(false);
+    setFinalRankings(null);
+    setLeaderboard([]);
+    setLastScore(null);
+    setCurrentQuestion(null);
+    setIsGameActive(false);
+    setTimer(0);
   };
 
   return (
@@ -242,10 +336,40 @@ function App() {
           <h3>Users in this room ({users.length}):</h3>
           <ul>
             {users.map((u, i) => (
-              <li key={i}>{u}</li>
+              <li key={i} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                padding: '4px 0',
+                borderBottom: i < users.length - 1 ? '1px solid #eee' : 'none'
+              }}>
+                <span>{u}</span>
+                <span style={{ fontWeight: 'bold', color: '#1976d2' }}>
+                  Score: {userScores[u] || 0}
+                </span>
+              </li>
             ))}
           </ul>
           
+          {/* Start Game Button - only show when not in active game */}
+          {!isGameActive && !gameEnded && (
+            <button 
+              onClick={startGame}
+              disabled={users.length === 0}
+              style={{ 
+                marginTop: '16px',
+                padding: '12px 24px',
+                backgroundColor: users.length > 0 ? '#4CAF50' : '#ccc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: users.length > 0 ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Start Game ({users.length} players)
+            </button>
+          )}
+
+          {/* Game Interface */}
           {isGameActive && currentQuestion && (
             <div style={{
               marginTop: '16px',
@@ -258,13 +382,168 @@ function App() {
                 🎯 Current Question:
               </h3>
               <p style={{ 
-                margin: '0', 
+                margin: '0 0 16px 0', 
                 fontSize: '16px', 
                 fontWeight: 'bold',
                 color: '#1565c0'
               }}>
                 {currentQuestion}
               </p>
+
+              {/* Timer */}
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#d32f2f' }}>
+                  ⏰ Time Remaining: {timer}s
+                </h4>
+              </div>
+
+              {/* Game Prompt Input */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                  Your Prompt:
+                </label>
+                <textarea
+                  value={gamePrompt}
+                  onChange={(e) => setGamePrompt(e.target.value)}
+                  placeholder="Enter your prompt here..."
+                  style={{
+                    width: '100%',
+                    minHeight: '80px',
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    fontFamily: 'monospace'
+                  }}
+                  disabled={isSubmittingPrompt}
+                />
+                <button
+                  onClick={handleSubmitGamePrompt}
+                  disabled={isSubmittingPrompt || !gamePrompt.trim()}
+                  style={{
+                    marginTop: '8px',
+                    padding: '8px 16px',
+                    backgroundColor: isSubmittingPrompt ? '#ccc' : '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: isSubmittingPrompt ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isSubmittingPrompt ? 'Submitting...' : 'Submit Prompt'}
+                </button>
+              </div>
+
+              {/* Last Score Display */}
+              {lastScore !== null && (
+                <div style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#e8f5e8',
+                  border: '1px solid #4CAF50',
+                  borderRadius: '4px',
+                  marginBottom: '16px'
+                }}>
+                  <p style={{ margin: '0', color: '#2e7d32', fontWeight: 'bold' }}>
+                    Your Score: {lastScore}
+                  </p>
+                </div>
+              )}
+
+              {/* AI Response Display */}
+              {lastAiResponse && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#f3e5f5',
+                  border: '1px solid #9c27b0',
+                  borderRadius: '4px',
+                  marginBottom: '16px'
+                }}>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#7b1fa2' }}>
+                    🤖 AI Response:
+                  </h4>
+                  <p style={{ 
+                    margin: '0', 
+                    color: '#4a148c',
+                    fontStyle: 'italic',
+                    fontSize: '14px'
+                  }}>
+                    {lastAiResponse}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Leaderboard */}
+          {leaderboard.length > 0 && (
+            <div style={{
+              marginTop: '16px',
+              padding: '16px',
+              backgroundColor: '#f5f5f5',
+              border: '1px solid #ddd',
+              borderRadius: '8px'
+            }}>
+              <h3 style={{ margin: '0 0 12px 0' }}>🏆 Leaderboard</h3>
+              {leaderboard.map((player, index) => (
+                <div key={player.username} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '4px 0',
+                  borderBottom: index < leaderboard.length - 1 ? '1px solid #eee' : 'none'
+                }}>
+                  <span style={{ fontWeight: index === 0 ? 'bold' : 'normal' }}>
+                    {index + 1}. {player.username}
+                  </span>
+                  <span style={{ fontWeight: 'bold' }}>{player.score}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Game End Results */}
+          {gameEnded && finalRankings && (
+            <div style={{
+              marginTop: '16px',
+              padding: '16px',
+              backgroundColor: '#fff3e0',
+              border: '2px solid #ff9800',
+              borderRadius: '8px'
+            }}>
+              <h3 style={{ margin: '0 0 12px 0', color: '#e65100' }}>
+                🎉 Game Over!
+              </h3>
+              <h4 style={{ margin: '0 0 8px 0', color: '#f57c00' }}>
+                Final Rankings:
+              </h4>
+              {finalRankings.map((player, index) => (
+                <div key={player.username} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '4px 0',
+                  borderBottom: index < finalRankings.length - 1 ? '1px solid #ffe0b2' : 'none'
+                }}>
+                  <span style={{ 
+                    fontWeight: index === 0 ? 'bold' : 'normal',
+                    color: index === 0 ? '#e65100' : 'inherit'
+                  }}>
+                    {index + 1}. {player.username}
+                  </span>
+                  <span style={{ fontWeight: 'bold' }}>{player.score}</span>
+                </div>
+              ))}
+              <button
+                onClick={resetGame}
+                style={{
+                  marginTop: '12px',
+                  padding: '8px 16px',
+                  backgroundColor: '#ff9800',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Play Again
+              </button>
             </div>
           )}
           
@@ -275,6 +554,11 @@ function App() {
               setErrorMessage('');
               setCurrentQuestion(null);
               setIsGameActive(false);
+              setGameEnded(false);
+              setFinalRankings(null);
+              setLeaderboard([]);
+              setLastScore(null);
+              setTimer(0);
             }}
             style={{ marginTop: '16px' }}
           >

@@ -118,9 +118,69 @@ io.on('connection', (socket) => {
   });
 
   socket.on('startGame', ({ roomCode }) => {
+    if (!rooms[roomCode] || rooms[roomCode].size === 0) {
+      socket.emit('error', { 
+        signal: "startGame", 
+        title: "Cannot start game", 
+        message: 'No players in room.' 
+      });
+      return;
+    }
+    
     games[roomCode] = new Game(io, roomCode, rooms[roomCode]);
     games[roomCode].startGame();
     io.to(roomCode).emit('startGame');
+  });
+
+  // Game-specific prompt submission with automatic scoring
+  socket.on('submitPrompt', async({ roomCode, username, prompt }) => {
+    if (!games[roomCode] || !games[roomCode].isGameActive()) {
+      socket.emit('error', { 
+        signal: "submitPrompt", 
+        title: "Game not active", 
+        message: 'No active game in this room.' 
+      });
+      return;
+    }
+
+    if (!hasOpenAIKey) {
+      socket.emit('error', { 
+        signal: "submitPrompt", 
+        title: "AI Disabled", 
+        message: 'AI features are disabled. Please set OPENAI_API_KEY environment variable.' 
+      });
+      return;
+    }
+
+    try {
+      // First, send the user's prompt to GPT to get an AI response
+      const aiResponse = await queryGPT(prompt, client);
+      
+      // Then calculate score by comparing AI response with the current question
+      const result = await games[roomCode].handlePromptSubmission(username, aiResponse, prompt);
+      
+      if (result.error) {
+        socket.emit('error', { 
+          signal: "submitPrompt", 
+          title: "Submission Error", 
+          message: result.error 
+        });
+      } else {
+        socket.emit('promptScored', { 
+          score: result.score,
+          leaderboard: result.leaderboard,
+          aiResponse: aiResponse,
+          userPrompt: prompt
+        });
+      }
+    } catch (error) {
+      console.error('Error handling prompt submission:', error);
+      socket.emit('error', { 
+        signal: "submitPrompt", 
+        title: "Server Error", 
+        message: 'Failed to process your prompt. Please try again.' 
+      });
+    }
   });
 
   // when the user sends a message, evaluate it using the openai api and calculate score
