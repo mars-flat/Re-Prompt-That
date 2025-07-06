@@ -149,6 +149,9 @@ io.on('connection', (socket) => {
         title: "Game not active", 
         message: 'No active game in this room.' 
       });
+      if(!games[roomCode].isGameActive() && games[roomCode].isQueryingDone()){
+        io.to(roomCode).emit('goToResultsPage');
+      }
       return;
     }
 
