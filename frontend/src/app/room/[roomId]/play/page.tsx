@@ -31,7 +31,7 @@ const Game = () => {
   const handleSubmitPrompt = () => {
     if (!prompt.trim()) return;
 
-    emitWithErrorHandling(socket, 'sendMessage', { roomCode: roomCode, username: username, message: prompt });
+    emitWithErrorHandling(socket, 'submitPrompt', { roomCode: roomCode, username: username, prompt: prompt });
 
     setPrompt("");
   };

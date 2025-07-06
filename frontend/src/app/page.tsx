@@ -24,14 +24,6 @@ export default function Home() {
             console.log("Room joined:", roomCode);
             router.push(`/room/${roomCode}/waitingroom`);
         });
-
-        socket.on('error', (error) => {
-            console.log("Socket error:", error);
-            toast({
-                title: error.title,
-                description: error.message,
-            });
-        });
     }, [router, toast]);
 
     const handleJoinGame = () => {

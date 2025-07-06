@@ -142,6 +142,7 @@ io.on('connection', (socket) => {
 
   // Game-specific prompt submission with automatic scoring
   socket.on('submitPrompt', async({ roomCode, username, prompt }) => {
+    console.log("Submitting prompt:", roomCode, username, prompt);
     if (!games[roomCode] || !games[roomCode].isGameActive()) {
       socket.emit('error', { 
         signal: "submitPrompt", 
@@ -179,6 +180,12 @@ io.on('connection', (socket) => {
           leaderboard: result.leaderboard,
           aiResponse: aiResponse,
           userPrompt: prompt
+        });
+
+        socket.to(roomCode).emit('scoreUpdate', {
+          username: username,
+          leaderboard: result.leaderboard,
+          score: result.score
         });
       }
     } catch (error) {

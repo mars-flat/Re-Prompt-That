@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import socket from '@/tools/mysocket';
+import { toast } from '@/hooks/use-toast';
 
 interface GameContextType {
     username: string;
@@ -22,6 +23,8 @@ interface GameContextType {
     setCurrentTarget: (currentTarget: string) => void;
     progressPercentage: number;
     setProgressPercentage: (progressPercentage: number) => void;
+    score: number;
+    leaderboard: {username: string, score: number}[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -38,6 +41,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [username, setUsername] = useState<string>('');
     const [roomCode, setRoomCode] = useState<string>('');
     const [players, setPlayers] = useState<string[]>([]);
+    const [score, setScore] = useState<number>(0);
+    const [leaderboard, setLeaderboard] = useState<string[]>([]);
     const [isHost, setIsHost] = useState<boolean>(true);
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
 
@@ -48,6 +53,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [progressPercentage, setProgressPercentage] = useState(100);
 
     useEffect(() => {
+        socket.on('error', (error) => {
+            console.log("Socket error:", error);
+            toast({
+                title: error.title,
+                description: error.message,
+            });
+        });
+
         // Listen for username updates from server
         socket.on("getUsername", (receivedUsername: string) => {
             console.log("Username received from server:", receivedUsername);
@@ -71,6 +84,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         socket.on("timerMessage", (timeLeft: number) => {
             console.log("Timer message received:", timeLeft);
             setTimeLeft(timeLeft);
+        });
+
+        socket.on("promptScored", ({score, leaderboard, aiResponse, userPrompt}) => {
+            console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
+        });
+
+        socket.on("scoreUpdate", ({username, leaderboard, score}) => {
+            console.log("Score update received:", username, leaderboard, score);
+            setPlayers(leaderboard);
+            setScore(score);
         });
 
         socket.on("gameEnd", () => {
@@ -105,6 +128,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentTarget,
         progressPercentage,
         setProgressPercentage,
+        score,
+        leaderboard,
     };
 
     return (
