@@ -1,4 +1,5 @@
 const { getScore } = require('./tools/getScore.js');
+const questions = require('./questions.js');
 
 class Game {
 
@@ -10,6 +11,7 @@ class Game {
         this.timerInterval = null;
 
         this.players = players.map(player => new Player(player));
+        this.allQuestions = questions.sort(() => Math.random() - 0.5);
     }
 
     startGame() {
@@ -22,6 +24,7 @@ class Game {
                 this.endGame();
             }
         }, 1000);
+        this.currentQuestion = this.allQuestions.pop();
     }
 
     endGame() {
@@ -47,7 +50,6 @@ class Game {
     getPlayersByScoreDescending() {
         return this.players.sort((a, b) => b.score - a.score);
     }
-
 }
 
 module.exports = Game;
