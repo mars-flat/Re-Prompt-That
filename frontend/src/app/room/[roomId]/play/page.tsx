@@ -209,7 +209,7 @@ const Game = () => {
 
               {/* Leaderboard */}
               <div className="space-y-6">
-                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success overflow-y-auto h-[450px]">
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success overflow-y-auto h-[393px]">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="w-5 h-5" />
@@ -246,12 +246,15 @@ const Game = () => {
                 </Card>
 
                 {/* Recent Submissions */}
-                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 overflow-y-auto h-[200px]">
-                  <CardHeader>
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 overflow-hidden h-[200px]">
+                  <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Recent Scores</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                      {recentScores.map((score, index) => (
+                  <CardContent className="space-y-0.5 overflow-y-auto [&::-webkit-scrollbar]:hidden pt-0" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                      {recentScores.slice().reverse().map((score, index) => (
                         <div key={index} className="text-xs p-2 bg-muted/20 rounded flex justify-between">
                           <div className="font-semibold text-muted-foreground">{score.username}</div>
                           <div className="font-semibold text-primary">{score.score}</div>
