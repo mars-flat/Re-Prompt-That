@@ -1,9 +1,10 @@
 const { Server } = require('socket.io');
 const OpenAI = require("openai");
 const Game = require('./game');
-const { initializePipeline } = require('./tools/getVectorSimilarity');
+const { initializePipeline, getVectorSimilarity } = require('./tools/getVectorSimilarity');
 const { getScore } = require('./tools/getScore.js');
 const { createHttpServer } = require('./httpHandler');
+const { queryGPT } = require('./tools/gptQuery.js');
 require('dotenv').config();
 
 const PORT = 4000;
@@ -66,7 +67,7 @@ io.on('connection', (socket) => {
     console.log(`🔄 Attempting to join room: ${roomCode} with username: ${username}`);
     
     // if game started
-    if (games[roomCode] && games[roomCode].active) {
+    if (games[roomCode] && games[roomCode].started) {
       console.log("Game already started");
       socket.emit('error', { signal: "joinRoom", title: "Game already started", message: 'Please wait for the next game.' });
       return;
@@ -128,22 +129,28 @@ io.on('connection', (socket) => {
     }
 
     try {
-      const response = await client.responses.create({
-          model: "gpt-4o-mini",
-          input: [
-              {
-                  role: "user",
-                  content: message
-              }
-          ]
-      });
+      const response = await queryGPT(message, client);
       // do something to calculate the score
       io.to(roomCode).emit('updateScore', { score: 10 });
-      socket.emit('chatResponse', { message: response.output_text });
+      socket.emit('chatResponse', { message: response });
     } catch (error) {
       console.error('OpenAI API error:', error);
       socket.emit('chatResponse', { 
         message: 'Sorry, there was an error processing your message. Please try again.' 
+      });
+    }
+  });
+
+  // Calculate similarity score between two strings
+  socket.on('calculateScore', async({ string1, string2 }) => {
+    try {
+      const similarity = await getVectorSimilarity(string1, string2);
+      socket.emit('scoreCalculated', { score: similarity });
+    } catch (error) {
+      console.error('Error calculating similarity:', error);
+      socket.emit('error', { 
+        title: 'Calculation Error', 
+        message: 'Failed to calculate similarity score. Please try again.' 
       });
     }
   });
