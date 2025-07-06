@@ -104,7 +104,7 @@ function App() {
   };
 
   const handleGPT = () => {
-    socket.emit('sendMessage', { message: userInput });
+    socket.emit('sendMessage', { roomCode: joinedRoom, username, message: userInput });
   }
 
   const handleChange = (event) => {

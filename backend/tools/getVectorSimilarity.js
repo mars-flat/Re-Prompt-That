@@ -1,18 +1,26 @@
 import { pipeline } from '@huggingface/transformers';
 
-// Allocate a pipeline for feature extraction (embeddings)
-console.log('Loading pipeline...');
-const pipe = await pipeline('feature-extraction', 'mixedbread-ai/mxbai-embed-large-v1');
-console.log('Pipeline loaded');
+let pipe = null;
 
+// Initialize the pipeline
+async function initializePipeline() {
+    if (!pipe) {
+        console.log('Loading pipeline...');
+        pipe = await pipeline('feature-extraction', 'mixedbread-ai/mxbai-embed-large-v1');
+        console.log('Pipeline loaded');
+    }
+    return pipe;
+}
 
 async function getVectorSimilarity(q1, q2) {
+    if (!pipe) {
+        await initializePipeline();
+    }
     const embedding1 = await getSentenceEmbedding(q1);
     const embedding2 = await getSentenceEmbedding(q2);
     const similarity = cosineSimilarity(embedding1, embedding2);
     return similarity;
 }
-
 
 // Function to calculate cosine similarity
 function cosineSimilarity(vecA, vecB) {
@@ -35,6 +43,9 @@ function cosineSimilarity(vecA, vecB) {
 
 // Function to get sentence embedding with mean pooling
 async function getSentenceEmbedding(text) {
+    if (!pipe) {
+        await initializePipeline();
+    }
     const output = await pipe(text);
     const sequenceLength = output.dims[1];
     const hiddenSize = output.dims[2];
@@ -54,3 +65,8 @@ async function getSentenceEmbedding(text) {
   
     return sentenceEmbedding;
 }
+
+module.exports = {
+  initializePipeline,
+  getVectorSimilarity,
+};
