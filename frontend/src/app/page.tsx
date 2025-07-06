@@ -45,7 +45,7 @@ export default function Home() {
                     Re-Prompt That
                 </div>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                    The ultimate prompt writing challenge. Given a target string, write the perfect prompt that would generate it.
+                    The ultimate prompt writing challenge.
                 </p>
             </div>
 
