@@ -93,7 +93,7 @@ const Game = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-mono bg-muted/50 p-4 rounded-lg text-center">
+                    <div className="text-xl font-mono bg-muted/50 p-4 rounded-lg text-center">
                       "{currentTarget}"
                     </div>
                   </CardContent>
@@ -111,7 +111,7 @@ const Game = () => {
                       onChange={(e) => setPrompt(e.target.value)}
                       className="text-lg p-4 h-auto"
                       onKeyDown={(e) => e.key === "Enter" && handleSubmitPrompt()}
-                      disabled={!prompt.trim() || gameState !== "playing" || !canSubmitPrompt}
+                      disabled={gameState !== "playing" || !canSubmitPrompt}
                     />
                     <Button 
                       onClick={handleSubmitPrompt}
