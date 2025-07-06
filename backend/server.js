@@ -197,43 +197,44 @@ io.on('connection', (socket) => {
       });
     }
   });
-
-  // when the user sends a message, evaluate it using the openai api and calculate score
-  socket.on('sendMessage', async({ roomCode, username, message }) => {
-    if (!hasOpenAIKey) {
-      socket.emit('chatResponse', { 
-        message: 'AI features are disabled. Please set OPENAI_API_KEY environment variable.' 
-      });
-      return;
-    }
-
-    try {
-      const response = await queryGPT(message, client);
-      // do something to calculate the score
-      io.to(roomCode).emit('updateScore', { score: 10 });
-      socket.emit('chatResponse', { message: response });
-    } catch (error) {
-      console.error('OpenAI API error:', error);
-      socket.emit('chatResponse', { 
-        message: 'Sorry, there was an error processing your message. Please try again.' 
-      });
-    }
-  });
-
-  // Calculate similarity score between two strings
-  socket.on('calculateScore', async({ string1, string2 }) => {
-    try {
-      const similarity = await getScore(string1, string2);
-      socket.emit('scoreCalculated', { score: similarity });
-    } catch (error) {
-      console.error('Error calculating similarity:', error);
-      socket.emit('error', { 
-        title: 'Calculation Error', 
-        message: 'Failed to calculate similarity score. Please try again.' 
-      });
-    }
-  });
 });
+
+//   // when the user sends a message, evaluate it using the openai api and calculate score
+//   socket.on('sendMessage', async({ roomCode, username, message }) => {
+//     if (!hasOpenAIKey) {
+//       socket.emit('chatResponse', { 
+//         message: 'AI features are disabled. Please set OPENAI_API_KEY environment variable.' 
+//       });
+//       return;
+//     }
+
+//     try {
+//       const response = await queryGPT(message, client);
+//       // do something to calculate the score
+//       io.to(roomCode).emit('updateScore', { score: 10 });
+//       socket.emit('chatResponse', { message: response });
+//     } catch (error) {
+//       console.error('OpenAI API error:', error);
+//       socket.emit('chatResponse', { 
+//         message: 'Sorry, there was an error processing your message. Please try again.' 
+//       });
+//     }
+//   });
+
+//   // Calculate similarity score between two strings
+//   socket.on('calculateScore', async({ string1, string2 }) => {
+//     try {
+//       const similarity = await getScore(string1, string2);
+//       socket.emit('scoreCalculated', { score: similarity });
+//     } catch (error) {
+//       console.error('Error calculating similarity:', error);
+//       socket.emit('error', { 
+//         title: 'Calculation Error', 
+//         message: 'Failed to calculate similarity score. Please try again.' 
+//       });
+//     }
+//   });
+// });
 
 // Start server and log a message
 async function startServer() {

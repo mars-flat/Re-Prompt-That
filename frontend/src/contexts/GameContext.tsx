@@ -104,7 +104,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => {
             socket.off("getUsername");
             socket.off('updateUserList');
-            socket.off("startGame");
+            socket.off("gameStarted");
+            socket.off("timerMessage");
             socket.off("gameEnd");
         };
     }, []);

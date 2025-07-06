@@ -18,23 +18,52 @@ class Game {
     }
 
     startGame() {
+        console.log('=== STARTGAME CALLED ===');
+        console.log('Current state:', { active: this.active, started: this.started, timer: this.timer });
+        
+        // Prevent multiple game starts
+        if (this.active || this.started) {
+            console.log('Game already started, ignoring startGame call');
+            return;
+        }
+        
         this.active = true;
         this.started = true;
+        this.timer = 60; // Explicitly set timer
         this.currentQuestion = this.allQuestions.pop();
         this.io.to(this.roomCode).emit('gameStarted', this.currentQuestion);
+        
+        console.log('Timer starting at:', this.timer);
+        console.log('Creating interval...');
+        
         this.timerInterval = setInterval(() => {
             this.timer--;
+            console.log('Timer tick:', this.timer);
             this.io.to(this.roomCode).emit('timerMessage', this.timer);
             if (this.timer <= 0) {
+                console.log('Timer reached 0, calling endGame');
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
                 this.endGame();
             }
         }, 1000);
     }
 
     endGame() {
+        console.log('=== ENDGAME CALLED ===');
+        console.log('Current state:', { active: this.active, started: this.started, timer: this.timer });
+        
         this.active = false;
         this.started = false;
-        clearInterval(this.timerInterval);
+        
+        if (this.timerInterval) {
+            console.log('Clearing interval...');
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        } else {
+            console.log('No interval to clear');
+        }
+        
         const finalRankings = this.getPlayersByScoreDescending();
         this.io.to(this.roomCode).emit('gameEnded', { 
             rankings: finalRankings,
