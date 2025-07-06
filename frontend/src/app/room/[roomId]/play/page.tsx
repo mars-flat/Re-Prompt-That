@@ -15,7 +15,7 @@ import { useGame } from "@/contexts/GameContext";
 
 
 const Game = () => {
-  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score } = useGame();
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt } = useGame();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
@@ -111,10 +111,11 @@ const Game = () => {
                       onChange={(e) => setPrompt(e.target.value)}
                       className="text-lg p-4 h-auto"
                       onKeyDown={(e) => e.key === "Enter" && handleSubmitPrompt()}
+                      disabled={!prompt.trim() || gameState !== "playing" || !canSubmitPrompt}
                     />
                     <Button 
                       onClick={handleSubmitPrompt}
-                      disabled={!prompt.trim() || gameState !== "playing"}
+                      disabled={!prompt.trim() || gameState !== "playing" || !canSubmitPrompt}
                       className="w-full gradient-neon text-background font-semibold hover:scale-105 transition-all"
                     >
                       <Send className="w-4 h-4 mr-2" />
