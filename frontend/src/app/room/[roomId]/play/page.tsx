@@ -149,6 +149,7 @@ const Game = () => {
                         <Progress 
                           value={progressPercentage} 
                           className={`h-3 ${timeLeft <= 10 ? 'glow-danger' : ''}`}
+                          indicatorClassName={timeLeft <= 10 ? 'bg-red-500 animate-pulse' : undefined}
                         />
                       </div>
                     </div>

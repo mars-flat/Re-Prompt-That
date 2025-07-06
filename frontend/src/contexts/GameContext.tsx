@@ -51,10 +51,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
     const [canSubmitPrompt, setCanSubmitPrompt] = useState<boolean>(false);
     const [recentScores, setRecentScores] = useState<{username: string, score: number}[]>([]);
+    const timePerRound = 60;
 
     // Game state variables
     const [round, setRound] = useState(1);
-    const [timeLeft, setTimeLeft] = useState(60);
+    const [timeLeft, setTimeLeft] = useState(timePerRound);
     const [currentTarget, setCurrentTarget] = useState("");
     const [progressPercentage, setProgressPercentage] = useState(100);
 
@@ -86,7 +87,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Game starting - updating context");
             setGameState('playing');
             setRound(1);
-            setTimeLeft(60);
+            setTimeLeft(timePerRound);
             setProgressPercentage(100);
             setScore(0);
             setCurrentTarget(currentQuestion);
@@ -104,6 +105,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         socket.on("timerMessage", (timeLeft: number) => {
             console.log("Timer message received:", timeLeft);
             setTimeLeft(timeLeft);
+            setProgressPercentage(timeLeft / timePerRound * 100);
         });
 
         socket.on("playerLeft", (username: string) => {
