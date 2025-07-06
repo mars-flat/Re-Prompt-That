@@ -77,6 +77,13 @@ const Game = () => {
     };
   }, []);
 
+  // Disable prompt submission when game is not playing or time runs out
+  useEffect(() => {
+    if (gameState !== "playing" || timeLeft <= 0) {
+      setCanSubmitPrompt(false);
+    }
+  }, [gameState, timeLeft, setCanSubmitPrompt]);
+
   
   const handleSubmitPrompt = () => {
     if (!prompt.trim()) return;

@@ -51,7 +51,6 @@ class Game {
 
     endGame() {
         console.log('=== ENDGAME CALLED ===');
-        console.log('Current state:', { active: this.active, started: this.started, timer: this.timer });
         
         this.active = false;
         this.started = false;
