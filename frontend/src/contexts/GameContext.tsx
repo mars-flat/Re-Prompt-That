@@ -106,7 +106,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
             setLeaderboard(leaderboard);
             setScore(score);
-            setCanSubmitPrompt(false);
+            setCanSubmitPrompt(true);
             toast({
                 title: `You scored ${score} points!`,
                 description: `${aiResponse}`,
@@ -118,7 +118,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Score update received:", username, leaderboard, score);
             setLeaderboard(leaderboard);
             setScore(score);
-            setCanSubmitPrompt(true);
             toast({
                 title: `Updated Results`,
                 description: `${username} scored ${score} points!`,

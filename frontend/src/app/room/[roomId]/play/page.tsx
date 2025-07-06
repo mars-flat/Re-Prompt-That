@@ -15,7 +15,7 @@ import { useGame } from "@/contexts/GameContext";
 
 
 const Game = () => {
-  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt } = useGame();
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt, setCanSubmitPrompt } = useGame();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const Game = () => {
   
   const handleSubmitPrompt = () => {
     if (!prompt.trim()) return;
-
+    setCanSubmitPrompt(false);
     emitWithErrorHandling(socket, 'submitPrompt', { roomCode: roomCode, username: username, prompt: prompt });
 
     setPrompt("");
