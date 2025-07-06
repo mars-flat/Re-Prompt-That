@@ -1,4 +1,4 @@
-import { pipeline } from '@huggingface/transformers';
+const { pipeline } = require('@huggingface/transformers');
 
 let pipe = null;
 
