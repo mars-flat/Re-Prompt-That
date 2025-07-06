@@ -6,6 +6,7 @@ class Game {
 
     constructor(io, roomCode, players) {
         this.active = false;
+        this.started = false;
         this.io = io;
         this.roomCode = roomCode;
         this.timer = 60;
@@ -17,6 +18,7 @@ class Game {
 
     startGame() {
         this.active = true;
+        this.started = true;
         this.currentQuestion = this.allQuestions.pop();
         this.io.to(this.roomCode).emit('gameStarted', { currentQuestion: this.currentQuestion });
         this.timerInterval = setInterval(() => {
@@ -30,11 +32,51 @@ class Game {
 
     endGame() {
         this.active = false;
+        this.started = false;
         clearInterval(this.timerInterval);
-        const rankings = Object.fromEntries(
-            Object.entries(this.players).sort(([, v1], [, v2]) => v2 - v1)
-        );
-        this.io.to(this.roomCode).emit('gameEnded', { winner: rankings });
+        const finalRankings = this.getPlayersByScoreDescending();
+        this.io.to(this.roomCode).emit('gameEnded', { 
+            rankings: finalRankings,
+            winner: finalRankings.length > 0 ? finalRankings[0] : null
+        });
+    }
+
+    async handlePromptSubmission(username, aiResponse, userPrompt) {
+        if (!this.active) {
+            return { error: 'Game is not active' };
+        }
+
+        const player = this.players.find(p => p.username === username);
+        if (!player) {
+            return { error: 'Player not found' };
+        }
+
+        try {
+            // Calculate score based on similarity between AI response and current question
+            const newScore = await getScore(aiResponse, this.currentQuestion);
+            
+            // Update player's score (keep the highest score)
+            player.score = Math.max(player.score, newScore);
+            
+            // Broadcast updated leaderboard to all players
+            const updatedLeaderboard = this.getPlayersByScoreDescending();
+            this.io.to(this.roomCode).emit('updateLeaderboard', { 
+                leaderboard: updatedLeaderboard,
+                playerScore: newScore,
+                username: username
+            });
+
+            return { 
+                success: true, 
+                score: newScore, 
+                leaderboard: updatedLeaderboard,
+                aiResponse: aiResponse,
+                userPrompt: userPrompt
+            };
+        } catch (error) {
+            console.error('Error calculating score:', error);
+            return { error: 'Failed to calculate score' };
+        }
     }
 
     async updateScore(username, prompt, targetString) {
@@ -55,6 +97,10 @@ class Game {
                 username: player.username,
                 score: player.score
             }));
+    }
+
+    isGameActive() {
+        return this.active && this.started;
     }
 }
 
