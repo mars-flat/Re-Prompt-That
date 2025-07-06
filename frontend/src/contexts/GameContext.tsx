@@ -42,7 +42,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [roomCode, setRoomCode] = useState<string>('');
     const [players, setPlayers] = useState<string[]>([]);
     const [score, setScore] = useState<number>(0);
-    const [leaderboard, setLeaderboard] = useState<string[]>([]);
+    const [leaderboard, setLeaderboard] = useState<{username: string, score: number}[]>([]);
     const [isHost, setIsHost] = useState<boolean>(true);
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
 
@@ -77,7 +77,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         socket.on("gameStarted", (currentQuestion: string) => {
             console.log("currentQuestion", currentQuestion)
             console.log("Game starting - updating context");
+            console.log("players", players);
             setGameState('playing');
+            setRound(1);
+            setTimeLeft(60);
+            setProgressPercentage(100);
+            setLeaderboard(players.map(player => ({username: player, score: 0})));
+            setScore(0);
             setCurrentTarget(currentQuestion);
         });
 
@@ -88,11 +94,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         socket.on("promptScored", ({score, leaderboard, aiResponse, userPrompt}) => {
             console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
+            setLeaderboard(leaderboard);
+            setScore(score);
         });
 
         socket.on("scoreUpdate", ({username, leaderboard, score}) => {
             console.log("Score update received:", username, leaderboard, score);
-            setPlayers(leaderboard);
+            setLeaderboard(leaderboard);
             setScore(score);
         });
 
@@ -104,7 +112,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => {
             socket.off("getUsername");
             socket.off('updateUserList');
-            socket.off("startGame");
+            socket.off("gameStarted");
+            socket.off("timerMessage");
             socket.off("gameEnd");
         };
     }, []);
