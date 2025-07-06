@@ -22,13 +22,14 @@ const WaitingRoom = () => {
 
         emitWithErrorHandling(socket, 'getUserList', { roomCode: roomCode });
 
-        socket.on('roomJoined', (roomCode: string) => {
-            console.log(`Room is joined ${roomCode}`);
-        });
-
         socket.on('updateUserList', (userList: any) => {
             console.log("User list updated", userList);
             setPlayers(userList);
+        });
+
+        socket.on("getUsername", (username: any) => {
+            console.log("My user updated", username);
+            setPlayerName(username);
         });
     }, []);
     
@@ -103,15 +104,11 @@ const WaitingRoom = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Animation Area */}
                 <div className="lg:col-span-2">
-                    <Card className="p-8 bg-card border-border shadow-card h-96 lg:h-[500px]">
+                    <Card className="p-8 bg-card border-border shadow-card h-96 lg:h-[450px]">
                     <div className="h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-primary/10 rounded-lg border border-primary/20 relative overflow-hidden">
                         {/* Placeholder for animation */}
                         <div className="text-center space-y-4 animate-pulse">
                         <div className="w-32 h-32 bg-gradient-primary rounded-full mx-auto opacity-20 animate-glow"></div>
-                        <div className="space-y-2">
-                            {/* <div className="h-4 bg-primary/20 rounded w-48 mx-auto"></div> */}
-                            {/* <div className="h-4 bg-accent/20 rounded w-32 mx-auto"></div> */}
-                        </div>
                         </div>
 
                          {/* DOG ANIMATION!! */}
@@ -144,7 +141,7 @@ const WaitingRoom = () => {
 
                 {/* Players List */}
                 <div className="space-y-6">
-                    <Card className="p-4 bg-card border-border shadow-card">
+                    <Card className="p-4 bg-card border-border shadow-card rounded-lg border text-card-foreground shadow-sm bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
                     <div className="flex items-center gap-2 mb-4">
                         <Users className="h-5 w-5 text-neon-green glow-success" />
                         <h3 className="font-bold text-neon-green glow-success">
@@ -152,18 +149,19 @@ const WaitingRoom = () => {
                         </h3>
                     </div>
                     
-                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                    <div className="space-y-2 h-[225px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                         {players.map((player, index) => (
                         <div
                             key={index}
-                            className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 animate-fade-in glow-success ${
-                            player === playerName ? 'bg-neon-green border border-neon-green/30' : 'bg-neon-green/80'
+                            className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 animate-fade-in ${
+                                player === playerName ? 'bg-neon-green/20 border border-neon-green/30' :
+                            'bg-muted/20 border border-muted/30'
                             }`}
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div className="flex items-center gap-3">
                             <span className={`font-medium ${
-                                player === playerName ? 'text-background font-bold' : 'text-background'
+                                player === playerName ? 'text-foreground font-bold' : 'text-foreground'
                             }`}>
                                 {player}
                                 {player === playerName && ' (You)'}
@@ -183,42 +181,31 @@ const WaitingRoom = () => {
 
                     {/* Game Controls */}
                     <Card className="p-4 bg-card border-border shadow-card">
-                    <div className="space-y-3">
-                        {isHost ? (
-                        <Button
-                            onClick={onStartGame}
-                            disabled={!canStartGame}
-                            className="w-full gradient-neon text-background hover:scale-105 transition-all duration-300 disabled:opacity-50 glow-success"
-                        >
-                            {canStartGame ? 'Start Game' : `Need ${2 - players.length} more player${2 - players.length !== 1 ? 's' : ''}`}
-                        </Button>
-                        ) : (
-                        <div className="text-center p-3 bg-muted/50 rounded-lg">
-                            <p className="text-sm text-muted-foreground">
-                            Waiting for host to start the game...
-                            </p>
+                        <div className="space-y-3">
+                            {isHost ? (
+                            <Button
+                                onClick={onStartGame}
+                                disabled={!canStartGame}
+                                className="w-full gradient-neon text-background hover:scale-105 transition-all duration-300 disabled:opacity-50 glow-success"
+                            >
+                                {canStartGame ? 'Start Game' : `Need ${2 - players.length} more player${2 - players.length !== 1 ? 's' : ''}`}
+                            </Button>
+                            ) : (
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <p className="text-sm text-muted-foreground">
+                                Waiting for host to start the game...
+                                </p>
+                            </div>
+                            )}
+                            
+                            <Button
+                            variant="outline"
+                            onClick={onLeaveRoom}
+                            className="w-full border-danger-red text-danger-red hover:bg-danger-red/10 hover:scale-105 transition-all"
+                            >
+                            Leave Room
+                            </Button>
                         </div>
-                        )}
-                        
-                        <Button
-                        variant="outline"
-                        onClick={onLeaveRoom}
-                        className="w-full border-danger-red text-danger-red hover:bg-danger-red/10 hover:scale-105 transition-all"
-                        >
-                        Leave Room
-                        </Button>
-                    </div>
-                    </Card>
-
-                    {/* Game Info */}
-                    <Card className="p-4 bg-card border-border shadow-card">
-                    <h4 className="font-bold text-electric-blue glow-primary mb-2">Game Rules</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• 2-4 players can join</li>
-                        <li>• Write prompts that generate target strings</li>
-                        <li>• Closer matches = higher scores</li>
-                        <li>• Multiple rounds of competition</li>
-                    </ul>
                     </Card>
                 </div>
                 </div>

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { io } from "socket.io-client";
 import { useToast } from "@/hooks/use-toast";
 import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
 import socket from "@/tools/mysocket";

@@ -63,6 +63,7 @@ io.on('connection', (socket) => {
 
   socket.on('getUserList', ({ roomCode }) => {
     io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
+    socket.emit('getUsername', socket.data.username);
   })
 
   socket.on('joinRoom', ({ roomCode, username }) => {
