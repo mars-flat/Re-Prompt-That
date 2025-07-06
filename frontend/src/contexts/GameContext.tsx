@@ -80,14 +80,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         socket.on("gameStarted", (currentQuestion: string) => {
             console.log("currentQuestion", currentQuestion)
             console.log("Game starting - updating context");
-            console.log("players", players);
             setGameState('playing');
             setRound(1);
             setTimeLeft(60);
             setProgressPercentage(100);
-            setLeaderboard(players.map(player => ({username: player, score: 0})));
             setScore(0);
             setCurrentTarget(currentQuestion);
+            
+            // Initialize leaderboard with current players at 0 score
+            setPlayers(currentPlayers => {
+                console.log("Current players for leaderboard:", currentPlayers);
+                const initialLeaderboard = currentPlayers.map(player => ({username: player, score: 0}));
+                setLeaderboard(initialLeaderboard);
+                return currentPlayers;
+            });
             setCanSubmitPrompt(true);
         });
 
