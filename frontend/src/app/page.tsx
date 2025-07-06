@@ -4,22 +4,54 @@ import { Code, Users, Zap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
+import { io } from "socket.io-client";
+import { useToast } from "@/hooks/use-toast";
+import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
+import socket from "@/tools/mysocket";
+    
 export default function Home() {
     const [roomCode, setRoomCode] = useState("");
+    const [joinGameUsername, setJoinGameUsername] = useState("");
+    const [createGameUsername, setCreateGameUsername] = useState("");
+
     const router = useRouter();
+    const { toast } = useToast();
+
+    useEffect(() => {   
+        socket.on('roomJoined', ({ roomCode }) => {
+            console.log("Room joined:", roomCode);
+            router.push(`/room/${roomCode}/waitingroom`);
+        });
+
+        socket.on('error', (error) => {
+            console.log("Socket error:", error);
+            toast({
+                title: error.title,
+                description: error.message,
+            });
+        });
+
+        // Cleanup function
+        return () => {
+            console.log("🧹 Cleaning up socket listeners");
+            socket.off('connect');
+            socket.off('disconnect');
+            socket.off('roomJoined');
+            socket.off('roomCreated');
+            socket.off('error');
+        };
+    }, [router, toast]);
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);
-        router.push(`/room/${roomCode}/waitingroom`);
+        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: joinGameUsername });
     }
 
     const handleCreateGame = () => {
         console.log("Creating game");
-        const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        router.push(`/room/${roomCode}/waitingroom`);
+        emitWithErrorHandling(socket, 'createRoom', { username: createGameUsername });
     }
 
     return (
@@ -57,6 +89,13 @@ export default function Home() {
                             maxLength={6}
                             onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
                         />
+                        <Input
+                            placeholder="Enter username..."
+                            value={joinGameUsername}
+                            onChange={(e) => setJoinGameUsername(e.target.value)}
+                            className="text-center text-lg font-mono tracking-wider"
+                            onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
+                        />
                         <Button 
                             onClick={handleJoinGame} 
                             className="w-full gradient-primary text-primary-foreground font-semibold hover:scale-105 transition-all"
@@ -78,7 +117,15 @@ export default function Home() {
                             Start a new game and invite friends
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <div className="text-center text-sm text-muted-foreground h-10"></div>
+                        <Input
+                            placeholder="Enter username..."
+                            value={createGameUsername}
+                            onChange={(e) => setCreateGameUsername(e.target.value)}
+                            className="text-center text-lg font-mono tracking-wider"
+                            onKeyDown={(e) => e.key === "Enter" && handleCreateGame()}
+                        />
                         <Button 
                             onClick={handleCreateGame}
                             className="w-full bg-secondary text-secondary-foreground font-semibold hover:scale-105 transition-all glow-secondary"

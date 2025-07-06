@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('http://100.26.52.167:4000', {
+const socket = io('http://localhost:4000', {
   transports: ['websocket', 'polling']
 });
 
@@ -13,6 +13,9 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('Connecting...');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [timer, setTimer] = useState(0);
+  const [gptResponse, setGptResponse] = useState('');
+  const [userInput, setUserInput] = useState('');
 
   useEffect(() => {
     // Connection status handlers
@@ -46,6 +49,15 @@ function App() {
       setErrorMessage(error);
       setIsLoading(false);
     });
+
+    socket.on('chatResponse', ({message}) => {
+        setGptResponse(message);
+        console.log(message);
+    });
+
+    socket.on('timerMessage', ({timer}) => {
+        setTimer(timer);
+    })
 
     return () => {
       socket.off('connect');
@@ -91,9 +103,32 @@ function App() {
     }
   };
 
+  const handleGPT = () => {
+    socket.emit('sendMessage', { message: userInput });
+  }
+
+  const handleChange = (event) => {
+    setUserInput(event.target.value); // updates state on every keystroke
+  };
+
+  const startGame = () => {
+    socket.emit('startGame', { roomCode: joinedRoom });
+  };
+
   return (
     <div style={{ padding: 32, fontFamily: 'sans-serif' }}>
       <h1>Room App</h1>
+    
+    <input type="text" value={userInput} onChange={handleChange} />
+      
+    <button onClick={handleGPT}>Submit</button>
+    <p>
+        Response: {gptResponse}
+    </p>
+    <h1>
+        Timer: {timer}
+    </h1>
+    <button onClick={startGame}>Start Game</button>
       
       {/* Connection Status */}
       <div style={{ 
@@ -191,6 +226,8 @@ function App() {
           </button>
         </>
       )}
+
+    
     </div>
   );
 }
