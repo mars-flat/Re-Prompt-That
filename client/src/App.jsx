@@ -22,6 +22,10 @@ function App() {
   const [string2, setString2] = useState('');
   const [calculatedScore, setCalculatedScore] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  
+  // Game state
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [isGameActive, setIsGameActive] = useState(false);
 
   useEffect(() => {
     // Connection status handlers
@@ -63,6 +67,12 @@ function App() {
 
     socket.on('timerMessage', ({timer}) => {
         setTimer(timer);
+    })
+
+    socket.on('gameStarted', ({currentQuestion}) => {
+        setCurrentQuestion(currentQuestion);
+        setIsGameActive(true);
+        console.log('Game started with question:', currentQuestion);
     })
 
     socket.on('scoreCalculated', ({score}) => {
@@ -236,11 +246,35 @@ function App() {
             ))}
           </ul>
           
+          {isGameActive && currentQuestion && (
+            <div style={{
+              marginTop: '16px',
+              padding: '16px',
+              backgroundColor: '#e3f2fd',
+              border: '2px solid #2196f3',
+              borderRadius: '8px'
+            }}>
+              <h3 style={{ margin: '0 0 8px 0', color: '#1976d2' }}>
+                🎯 Current Question:
+              </h3>
+              <p style={{ 
+                margin: '0', 
+                fontSize: '16px', 
+                fontWeight: 'bold',
+                color: '#1565c0'
+              }}>
+                {currentQuestion}
+              </p>
+            </div>
+          )}
+          
           <button 
             onClick={() => {
               setJoinedRoom(null);
               setUsers([]);
               setErrorMessage('');
+              setCurrentQuestion(null);
+              setIsGameActive(false);
             }}
             style={{ marginTop: '16px' }}
           >

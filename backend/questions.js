@@ -7,3 +7,5 @@ const questions = [
     "Over the last two decades, the unit price climbed from under $3 in 2005 to above $250 by late 2024, driven by breakthroughs like the iPhone and services growth. Brief pullbacks in 2008 and early 2020 reversed quickly. Four-for-one splits in 2014, 2020, and 2022 expanded access. Overall, this ascent delivered roughly a 30% annualized gain—turning a $1,000 stake into about $185,000 by 2023",
 ]
 
+module.exports = questions;
+

@@ -5,7 +5,7 @@ async function queryGPT(message, client) {
         input: [
           {
             role: "system",
-            content: "You are a helpful assistant. Keep responses concise (≤150 tokens)."
+            content: "You are a helpful assistant. Keep responses concise (<=150 tokens)."
           },
           {
             role: "user",
@@ -13,6 +13,7 @@ async function queryGPT(message, client) {
           }
         ],
         temperature: 0.5,
+        max_output_tokens: 150
       });
       return res.output_text;
     } catch (error) {

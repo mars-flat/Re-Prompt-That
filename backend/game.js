@@ -1,5 +1,6 @@
 const { getScore } = require('./tools/getScore.js');
 const questions = require('./questions.js');
+const Player = require('./player.js');
 
 class Game {
 
@@ -10,13 +11,14 @@ class Game {
         this.timer = 60;
         this.timerInterval = null;
 
-        this.players = players.map(player => new Player(player));
+        this.players = Array.from(players).map(username => new Player(username));
         this.allQuestions = questions.sort(() => Math.random() - 0.5);
     }
 
     startGame() {
         this.active = true;
-        this.io.to(this.roomCode).emit('gameStarted');
+        this.currentQuestion = this.allQuestions.pop();
+        this.io.to(this.roomCode).emit('gameStarted', { currentQuestion: this.currentQuestion });
         this.timerInterval = setInterval(() => {
             this.timer--;
             this.io.to(this.roomCode).emit('timerMessage', { timer: this.timer });
@@ -24,7 +26,6 @@ class Game {
                 this.endGame();
             }
         }, 1000);
-        this.currentQuestion = this.allQuestions.pop();
     }
 
     endGame() {
@@ -43,12 +44,17 @@ class Game {
             // Use MAX(existing score, new score)
             player.score = Math.max(player.score, newScore);
             // Emit updated scores to all players
-            this.io.to(this.roomCode).emit('updateScores', this.getPlayerScores());
+            this.io.to(this.roomCode).emit('updateScores', this.getPlayersByScoreDescending());
         }
     }
 
     getPlayersByScoreDescending() {
-        return this.players.sort((a, b) => b.score - a.score);
+        return this.players
+            .sort((a, b) => b.score - a.score)
+            .map(player => ({
+                username: player.username,
+                score: player.score
+            }));
     }
 }
 
