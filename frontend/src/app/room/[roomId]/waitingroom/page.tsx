@@ -52,6 +52,7 @@ const WaitingRoom = () => {
 
     const onLeaveRoom = () => {
         console.log('Leaving room');
+        emitWithErrorHandling(socket, 'disconnectLobby', { roomCode: roomCode, username: username });
         router.push('/');
     };
 

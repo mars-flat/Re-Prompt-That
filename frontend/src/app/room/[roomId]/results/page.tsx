@@ -38,6 +38,8 @@ const ResultsPage = () => {
             setLeaderboard(results);
         });
 
+        emitWithErrorHandling(socket, 'leaveLobby', { roomCode: roomCode, username: username });
+
         return () => {
             socket.off('gameResults');
         };
@@ -54,13 +56,12 @@ const ResultsPage = () => {
 
     const onPlayAgain = () => {
         console.log('Play again');
-        console.log(socket);
+        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: username });
         router.push(`/room/${roomCode}/waitingroom`);
     };
 
     const onReturnHome = () => {
         console.log('Return to home');
-        console.log(socket);
         router.push('/');
     };
 

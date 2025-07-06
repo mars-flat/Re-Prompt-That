@@ -102,7 +102,8 @@ io.on('connection', (socket) => {
     console.log("User list updated for room", roomCode, ":", Array.from(rooms[roomCode]));
   });
 
-  socket.on('disconnect', () => {
+  // leave from lobby before having played
+  socket.on('disconnectLobby', () => {
     const { username, roomCode } = socket.data || {};
     if (username && roomCode && rooms[roomCode]) {
       console.log(`User ${username} disconnected from room ${roomCode}`);
@@ -114,6 +115,7 @@ io.on('connection', (socket) => {
         console.log(`Updating user list for room ${roomCode}:`, Array.from(rooms[roomCode]));
         io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
+      socket.leave(roomCode);
     }
   });
 
@@ -143,6 +145,16 @@ io.on('connection', (socket) => {
   socket.on('getGameResults', ({ roomCode }) => {
     socket.emit('gameResults', {results: games[roomCode].getPlayersByScoreDescending()});
   });
+
+  // leave from lobby during results page
+  // note: will cause number of lobbies to increase if everyone leaves
+  socket.on('leaveLobby', ({ roomCode, username }) => {
+    rooms[roomCode].delete(username);
+    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
+    socket.leave(roomCode);
+    console.log(`Socket left room ${roomCode}`);
+    console.log(socket.rooms, roomCode, io.sockets.adapter.rooms);
+  })
 
   // Game-specific prompt submission with automatic scoring
   socket.on('submitPrompt', async({ roomCode, username, prompt }) => {
