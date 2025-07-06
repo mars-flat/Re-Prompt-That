@@ -27,6 +27,8 @@ interface GameContextType {
     leaderboard: {username: string, score: number}[];
     canSubmitPrompt: boolean;
     setCanSubmitPrompt: (canSubmitPrompt: boolean) => void;
+    recentScores: {username: string, score: number}[];
+    setRecentScores: (recentScores: {username: string, score: number}[]) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -48,6 +50,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isHost, setIsHost] = useState<boolean>(true);
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
     const [canSubmitPrompt, setCanSubmitPrompt] = useState<boolean>(false);
+    const [recentScores, setRecentScores] = useState<{username: string, score: number}[]>([]);
 
     // Game state variables
     const [round, setRound] = useState(1);
@@ -86,7 +89,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProgressPercentage(100);
             setScore(0);
             setCurrentTarget(currentQuestion);
-            
+            setRecentScores([]);
             // Initialize leaderboard with current players at 0 score
             setPlayers(currentPlayers => {
                 console.log("Current players for leaderboard:", currentPlayers);
@@ -102,27 +105,29 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setTimeLeft(timeLeft);
         });
 
-        socket.on("promptScored", ({score, leaderboard, aiResponse, userPrompt}) => {
+        socket.on("promptScored", ({username, score, leaderboard, aiResponse, userPrompt}) => {
             console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
             setLeaderboard(leaderboard);
             setScore(score);
+            setRecentScores(prev => [...prev, {username: username, score: score}]);
             setCanSubmitPrompt(true);
             toast({
                 title: `You scored ${score} points!`,
                 description: `${aiResponse}`,
-                variant: "default",
+                variant: "neon",
             });
         });
 
         socket.on("scoreUpdate", ({username, leaderboard, score}) => {
             console.log("Score update received:", username, leaderboard, score);
             setLeaderboard(leaderboard);
+            setRecentScores(prev => [...prev, {username: username, score: score}]);
             setScore(score);
-            toast({
-                title: `Updated Results`,
-                description: `${username} scored ${score} points!`,
-                variant: "default",
-            });
+            // toast({
+            //     title: `Updated Results`,
+            //     description: `${username} scored ${score} points!`,
+            //     variant: "default",
+            // });
         });
 
         socket.on("gameEnd", () => {
@@ -162,6 +167,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         leaderboard,
         canSubmitPrompt,
         setCanSubmitPrompt,
+        recentScores,
+        setRecentScores,
     };
 
     return (

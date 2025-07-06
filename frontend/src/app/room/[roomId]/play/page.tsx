@@ -15,7 +15,7 @@ import { useGame } from "@/contexts/GameContext";
 
 
 const Game = () => {
-  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt, setCanSubmitPrompt } = useGame();
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt, setCanSubmitPrompt, recentScores } = useGame();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
@@ -195,7 +195,7 @@ const Game = () => {
 
               {/* Leaderboard */}
               <div className="space-y-6">
-                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success overflow-y-auto h-[450px]">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="w-5 h-5" />
@@ -230,22 +230,22 @@ const Game = () => {
                     ))}
                   </CardContent>
                 </Card>
-              </div>
 
-              {/* Recent Submissions */}
-            {/* <Card className="bg-card/30 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-sm">Recent Submissions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {players.filter(p => p.lastPrompt).map(player => (
-                  <div key={player.id} className="text-xs p-2 bg-muted/20 rounded">
-                    <div className="font-semibold text-primary">{player.name}</div>
-                    <div className="text-muted-foreground">"{player.lastPrompt}"</div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>  */}
+                {/* Recent Submissions */}
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20 overflow-y-auto h-[200px]">
+                  <CardHeader>
+                    <CardTitle className="text-sm">Recent Scores</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                      {recentScores.map((score, index) => (
+                        <div key={index} className="text-xs p-2 bg-muted/20 rounded flex justify-between">
+                          <div className="font-semibold text-muted-foreground">{score.username}</div>
+                          <div className="font-semibold text-primary">{score.score}</div>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>

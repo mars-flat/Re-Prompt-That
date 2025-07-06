@@ -176,6 +176,7 @@ io.on('connection', (socket) => {
         });
       } else {
         socket.emit('promptScored', { 
+          username: username,
           score: result.score,
           leaderboard: result.leaderboard,
           aiResponse: aiResponse,
