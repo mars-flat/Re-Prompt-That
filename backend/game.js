@@ -15,6 +15,7 @@ class Game {
         this.players = Array.from(players).map(username => new Player(username));
         this.playersReady = new Set();
         this.allQuestions = questions.sort(() => Math.random() - 0.5);
+        this.queriesActive = 0;
     }
 
     startGame() {
@@ -51,7 +52,6 @@ class Game {
 
     endGame() {
         console.log('=== ENDGAME CALLED ===');
-        console.log('Current state:', { active: this.active, started: this.started, timer: this.timer });
         
         this.active = false;
         this.started = false;
@@ -69,6 +69,10 @@ class Game {
             rankings: finalRankings,
             winner: finalRankings.length > 0 ? finalRankings[0] : null
         });
+
+        if(this.isQueryingDone()){
+            this.io.to(this.roomCode).emit('goToResultsPage');
+        }
     }
 
     async handlePromptSubmission(username, aiResponse, userPrompt) {
@@ -126,6 +130,14 @@ class Game {
 
     isLobbyReady(){
         return this.playersReady.size == this.players.length;
+    }
+
+    updateQueriesActive(amount){
+        this.queriesActive += amount;
+    }
+
+    isQueryingDone(){
+        return this.queriesActive == 0;
     }
 
     getPlayersByScoreDescending() {

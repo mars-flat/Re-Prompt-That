@@ -12,17 +12,24 @@ import { useParams } from "next/navigation";
 import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
 import socket from "@/tools/mysocket";
 import { useGame } from "@/contexts/GameContext";
+import { useRouter } from 'next/navigation';
 
 
 const Game = () => {
   const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage, leaderboard, score, canSubmitPrompt, setCanSubmitPrompt, recentScores } = useGame();
   const [prompt, setPrompt] = useState("");
 
+  const router = useRouter();
+
   useEffect(() => {
     console.log("Players", players);
     console.log("Username", username)
     console.log("Is Host", isHost);
     console.log("Game State", gameState);
+
+    socket.on("goToResultsPage", () => {
+        router.push(`/room/${roomCode}/results`);
+    });
 
     emitWithErrorHandling(socket, 'playerReady', { roomCode: roomCode, username: username });
 
@@ -76,6 +83,13 @@ const Game = () => {
       document.removeEventListener('paste', handlePaste);
     };
   }, []);
+
+  // Disable prompt submission when game is not playing or time runs out
+  useEffect(() => {
+    if (gameState !== "playing" || timeLeft <= 0) {
+      setCanSubmitPrompt(false);
+    }
+  }, [gameState, timeLeft, setCanSubmitPrompt]);
 
   
   const handleSubmitPrompt = () => {
