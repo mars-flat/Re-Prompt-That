@@ -7,6 +7,7 @@ import { Users, Crown, Copy, Check } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import emitWithErrorHandling from '@/tools/emitWithErrorHandling';
 import socket from '@/tools/mysocket';
+import Image from "next/image";
 
 const WaitingRoom = () => {
     const params = useParams();
@@ -66,10 +67,12 @@ const WaitingRoom = () => {
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold glow-primary">
-                    Re-Prompt That
-                </h1>
-                <p className="text-muted-foreground">Waiting for players to join...</p>
+                <div className="w-fit flex flex-row mx-auto mt-12 items-center gap-2">
+                    <Image src="/dog.gif" width={200} height={200} alt="Big Gurt" className="h-16 w-24"/>
+                    <h1 className="text-4xl font-bold glow-primary">
+                        Re-Prompt That
+                    </h1>
+                </div>
                 </div>
 
                 {/* Room Code */}

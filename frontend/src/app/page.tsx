@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
 import socket from "@/tools/mysocket";
+import Image from "next/image";
     
 export default function Home() {
     const [roomCode, setRoomCode] = useState("");
@@ -48,7 +49,7 @@ export default function Home() {
             {/* Hero Section */}
             <div className="text-center space-y-4 animate-fade-in mt-24">
                 <div className="inline-flex items-center gap-2 text-4xl font-bold glow-primary">
-                    <Code className="w-12 h-12" />
+                    <Image src="/dog.gif" width={200} height={200} alt="Big Gurt" className="h-16 w-24"/>
                     Re-Prompt That
                 </div>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
