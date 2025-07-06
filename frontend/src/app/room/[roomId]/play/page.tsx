@@ -15,7 +15,7 @@ import { useGame } from "@/contexts/GameContext";
 
 
 const Game = () => {
-  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState } = useGame();
+  const { username, setUsername, roomCode, players, setPlayers, isHost, setIsHost, gameState, round, timeLeft, currentTarget, progressPercentage, setProgressPercentage } = useGame();
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
@@ -41,90 +41,90 @@ const Game = () => {
   
   return (
     <>
-    {gameState === "playing" && (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="text-sm font-mono">
-              Room: {roomCode}
-            </Badge>
-            <Badge variant="secondary">
-              Round {round}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <span className="text-sm text-muted-foreground">{players.length} players</span>
-          </div>
-        </div>
+      {gameState === "playing" && (
+        <div className="min-h-screen bg-background p-4">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-sm font-mono">
+                  Room: {roomCode}
+                </Badge>
+                <Badge variant="secondary">
+                  Round {round}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span className="text-sm text-muted-foreground">{players.length} players</span>
+              </div>
+            </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Game Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Timer */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <Clock className={`w-6 h-6 ${timeLeft <= 10 ? 'text-danger-red animate-timer-warning' : 'text-primary'}`} />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-muted-foreground">Time Remaining</span>
-                      <span className={`text-xl font-bold font-mono ${timeLeft <= 10 ? 'animate-timer-warning' : ''}`}>
-                        {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-                      </span>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Main Game Area */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Timer */}
+                <Card className="bg-card/50 backdrop-blur-sm">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <Clock className={`w-6 h-6 ${timeLeft <= 10 ? 'text-danger-red animate-timer-warning' : 'text-primary'}`} />
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-muted-foreground">Time Remaining</span>
+                          <span className={`text-xl font-bold font-mono ${timeLeft <= 10 ? 'animate-timer-warning' : ''}`}>
+                            {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={progressPercentage} 
+                          className={`h-3 ${timeLeft <= 10 ? 'glow-danger' : ''}`}
+                        />
+                      </div>
                     </div>
-                    <Progress 
-                      value={progressPercentage} 
-                      className={`h-3 ${timeLeft <= 10 ? 'glow-danger' : ''}`}
+                  </CardContent>
+                </Card>
+
+                {/* Target String */}
+                <Card className="bg-card/50 backdrop-blur-sm border-primary/20 glow-primary">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Target String
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-mono bg-muted/50 p-4 rounded-lg text-center">
+                      "{currentTarget}"
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Prompt Input */}
+                <Card className="bg-card/50 backdrop-blur-sm border-accent/20">
+                  <CardHeader>
+                    <CardTitle>Your Prompt</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Input
+                      placeholder="Write the perfect prompt that would generate the target string..."
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      className="text-lg p-4 h-auto"
+                      onKeyDown={(e) => e.key === "Enter" && handleSubmitPrompt()}
                     />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    <Button 
+                      onClick={handleSubmitPrompt}
+                      disabled={!prompt.trim() || gameState !== "playing"}
+                      className="w-full gradient-neon text-background font-semibold hover:scale-105 transition-all"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Submit Prompt
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Target String */}
-            <Card className="bg-card/50 backdrop-blur-sm border-primary/20 glow-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Target String
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-mono bg-muted/50 p-4 rounded-lg text-center">
-                  "{currentTarget}"
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Prompt Input */}
-            <Card className="bg-card/50 backdrop-blur-sm border-accent/20">
-              <CardHeader>
-                <CardTitle>Your Prompt</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  placeholder="Write the perfect prompt that would generate the target string..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="text-lg p-4 h-auto"
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmitPrompt()}
-                />
-                <Button 
-                  onClick={handleSubmitPrompt}
-                  disabled={!prompt.trim() || !isGameActive}
-                  className="w-full gradient-neon text-background font-semibold hover:scale-105 transition-all"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Submit Prompt
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-              {/* Leaderboard */}
+              {/* Leaderboard
               <div className="space-y-6">
                 <Card className="bg-card/50 backdrop-blur-sm border-accent/20 glow-success">
                   <CardHeader>
@@ -167,7 +167,6 @@ const Game = () => {
                   </CardContent>
                 </Card>
 
-            {/* Recent Activity */}
             <Card className="bg-card/30 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-sm">Recent Submissions</CardTitle>
@@ -180,12 +179,11 @@ const Game = () => {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </Card> */}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    )}
+      )}
     </>
   );
 };

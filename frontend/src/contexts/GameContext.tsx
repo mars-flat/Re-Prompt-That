@@ -14,6 +14,14 @@ interface GameContextType {
     setIsHost: (isHost: boolean) => void;
     gameState: 'waiting' | 'playing' | 'results';
     setGameState: (state: 'waiting' | 'playing' | 'results') => void;
+    round: number;
+    setRound: (round: number) => void;
+    timeLeft: number;
+    setTimeLeft: (timeLeft: number) => void;
+    currentTarget: string;
+    setCurrentTarget: (currentTarget: string) => void;
+    progressPercentage: number;
+    setProgressPercentage: (progressPercentage: number) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -54,6 +62,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Listen for game state changes
         socket.on("gameStarted", (currentQuestion: string) => {
+            console.log("currentQuestion", currentQuestion)
             console.log("Game starting - updating context");
             setGameState('playing');
             setCurrentTarget(currentQuestion);
@@ -80,7 +89,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const value: GameContextType = {
         username,
         setUsername,
-        roomCode,
+        roomCode,   
         setRoomCode,
         players,
         setPlayers,
@@ -88,6 +97,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsHost,
         gameState,
         setGameState,
+        round,
+        setRound,
+        timeLeft,
+        setTimeLeft,
+        currentTarget,
+        setCurrentTarget,
+        progressPercentage,
+        setProgressPercentage,
     };
 
     return (

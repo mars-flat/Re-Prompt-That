@@ -44,7 +44,7 @@ const WaitingRoom = () => {
         setCopied(true);
     };
 
-    const canStartGame = players.length >= 2;
+    const canStartGame = players.length >= 1;
 
     const onStartGame = () => {
         emitWithErrorHandling(socket, 'startGame', { roomCode: roomCode });

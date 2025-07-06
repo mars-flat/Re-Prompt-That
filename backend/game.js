@@ -21,10 +21,10 @@ class Game {
         this.active = true;
         this.started = true;
         this.currentQuestion = this.allQuestions.pop();
-        this.io.to(this.roomCode).emit('gameStarted', { currentQuestion: this.currentQuestion });
+        this.io.to(this.roomCode).emit('gameStarted', this.currentQuestion);
         this.timerInterval = setInterval(() => {
             this.timer--;
-            this.io.to(this.roomCode).emit('timerMessage', { timer: this.timer });
+            this.io.to(this.roomCode).emit('timerMessage', this.timer);
             if (this.timer <= 0) {
                 this.endGame();
             }
