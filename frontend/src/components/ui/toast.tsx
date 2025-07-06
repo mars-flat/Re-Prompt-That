@@ -31,6 +31,7 @@ const toastVariants = cva(
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
         neon: "border-accent/20 bg-accent/10 text-foreground backdrop-blur-sm animate-glow-pulse" + " shadow-[0_-8px_16px_rgba(var(--accent),0.3)]",
+        info: "border-blue-500/20 bg-blue-500/10 text-foreground backdrop-blur-sm animate-glow-pulse" + " shadow-[0_-8px_16px_rgba(59,130,246,0.3)]",
       },
     },
     defaultVariants: {

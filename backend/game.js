@@ -132,6 +132,13 @@ class Game {
         return this.playersReady.size == this.players.length;
     }
 
+    leaveGame(username){
+        // this.players = this.players.filter(player => player.username !== username);
+        if (this.playersReady.has(username)){
+            this.playersReady.delete(username);
+        }
+    }
+
     updateQueriesActive(amount){
         this.queriesActive += amount;
     }

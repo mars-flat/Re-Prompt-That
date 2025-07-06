@@ -106,6 +106,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setTimeLeft(timeLeft);
         });
 
+        socket.on("playerLeft", (username: string) => {
+            console.log("Player left:", username);
+            toast({
+                title: `${username} left the game`,
+                variant: "info",
+            });
+        });
+
         socket.on("promptScored", ({username, score, leaderboard, aiResponse, userPrompt}) => {
             console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
             setLeaderboard(leaderboard);
@@ -137,13 +145,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => {
-            socket.off("getUsername");
+            // Clean up socket listeners
+            socket.off('error');
+            socket.off('getUsername');
             socket.off('updateUserList');
-            socket.off("gameStarted");
-            socket.off("timerMessage");
-            socket.off("gameEnd");
+            socket.off('gameStarted');
+            socket.off('timerMessage');
+            socket.off('promptScored');
+            socket.off('scoreUpdate');
+            socket.off('gameEnd');
         };
+
     }, []);
+
+    // Handle tab close/refresh to emit disconnectLobby
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            console.log("Tab is closing, emitting disconnectLobby");
+            socket.emit('disconnectLobby', { roomCode, username });
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [roomCode, username]);
 
     const value: GameContextType = {
         username,

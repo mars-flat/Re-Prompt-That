@@ -112,6 +112,12 @@ io.on('connection', (socket) => {
         console.log(`Updating user list for room ${roomCode}:`, Array.from(rooms[roomCode]));
         io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
+
+      if (games[roomCode]) {
+        console.log(`User ${username} left game in room ${roomCode}`);
+        games[roomCode].leaveGame(username);
+        io.to(roomCode).emit('playerLeft', username);
+      }
       socket.leave(roomCode);
     }
   });
