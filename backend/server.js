@@ -58,12 +58,11 @@ io.on('connection', (socket) => {
     console.log(socket.rooms, roomCode, io.sockets.adapter.rooms);
     const roomSockets = io.sockets.adapter.rooms.get(roomCode);
     console.log("Socket IDs in room:", Array.from(roomSockets || []));
-    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
-    console.log("User list updated", Array.from(rooms[roomCode]));
   });
 
   socket.on('getUserList', ({ roomCode }) => {
     io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
+    console.log("User list updated", Array.from(rooms[roomCode]));
     socket.emit('getUsername', socket.data.username);
   })
 
@@ -98,8 +97,6 @@ io.on('connection', (socket) => {
     console.log(`User ${username} joined room ${roomCode}`);
     socket.emit('roomJoined', { roomCode });
     console.log(socket.rooms);
-    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
-    console.log("User list updated for room", roomCode, ":", Array.from(rooms[roomCode]));
   });
 
   // leave from lobby before having played
