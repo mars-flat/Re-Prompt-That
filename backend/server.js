@@ -1,78 +1,15 @@
 const { Server } = require('socket.io');
 const OpenAI = require("openai");
-const http = require('http');
 const Game = require('./game');
+const { initializePipeline, getVectorSimilarity } = require('./tools/getVectorSimilarity');
+const { getScore } = require('./tools/getScore.js');
+const { createHttpServer } = require('./httpHandler');
+const { queryGPT } = require('./tools/gptQuery.js');
 require('dotenv').config();
 
 const PORT = 4000;
 
-const server = http.createServer((req, res) => {
-  // Handle direct HTTP requests (when someone visits localhost:4000 in browser)
-  if (req.method === 'GET' && req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Room App Server</title>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              text-align: center; 
-              padding: 50px; 
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              margin: 0;
-            }
-            .container {
-              background: rgba(255,255,255,0.1);
-              padding: 40px;
-              border-radius: 15px;
-              backdrop-filter: blur(10px);
-              max-width: 600px;
-              margin: 0 auto;
-            }
-            h1 { margin-bottom: 20px; }
-            .status { 
-              background: #4CAF50; 
-              padding: 10px 20px; 
-              border-radius: 25px; 
-              display: inline-block;
-              margin: 20px 0;
-            }
-            .info {
-              background: rgba(255,255,255,0.2);
-              padding: 20px;
-              border-radius: 10px;
-              margin: 20px 0;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>Room App Server</h1>
-            <div class="status">Server is running!</div>
-            <div class="info">
-              <h3>Server Status</h3>
-              <p><strong>Port:</strong> ${PORT}</p>
-              <p><strong>Status:</strong> Online and accepting connections</p>
-              <p><strong>Socket.IO:</strong> Ready for WebSocket connections</p>
-            </div>
-            <div class="info">
-              <h3>How to Connect</h3>
-              <p>This server is designed for WebSocket connections from the client app.</p>
-              <p>Use the client application to connect and create/join rooms.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
-  } else {
-    // Handle other HTTP requests
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
-  }
-});
+const server = createHttpServer(PORT);
 
 const io = new Server(server, {
   cors: {
@@ -88,8 +25,23 @@ if (!hasOpenAIKey) {
   console.log('⚠️  Warning: OPENAI_API_KEY not found. AI features will be disabled.');
 }
 
-const rooms = {};
-const games = {};
+const rooms = {}; // roomCode -> Set of usernames
+const games = {}; // roomCode -> Game instance
+
+// Initialize the pipeline during server startup
+let pipelineInitialized = false;
+
+async function initializeServer() {
+  try {
+    console.log('🚀 Initializing server...');
+    await initializePipeline();
+    pipelineInitialized = true;
+    console.log('✅ Pipeline initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize pipeline:', error);
+    console.log('⚠️  Server will continue without vector similarity features');
+  }
+}
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -116,7 +68,7 @@ io.on('connection', (socket) => {
     
     // if game started
     if (games[roomCode] && games[roomCode].started) {
-      console.log("❌ Game already started");
+      console.log("Game already started");
       socket.emit('error', { signal: "joinRoom", title: "Game already started", message: 'Please wait for the next game.' });
       return;
     }
@@ -168,7 +120,7 @@ io.on('connection', (socket) => {
   });
 
   // when the user sends a message, evaluate it using the openai api and calculate score
-  socket.on('sendMessage', async({ roomCode, message }) => {
+  socket.on('sendMessage', async({ roomCode, username, message }) => {
     if (!hasOpenAIKey) {
       socket.emit('chatResponse', { 
         message: 'AI features are disabled. Please set OPENAI_API_KEY environment variable.' 
@@ -177,18 +129,10 @@ io.on('connection', (socket) => {
     }
 
     try {
-      const response = await client.responses.create({
-          model: "gpt-4o-mini",
-          input: [
-              {
-                  role: "user",
-                  content: message
-              }
-          ]
-      });
+      const response = await queryGPT(message, client);
       // do something to calculate the score
       io.to(roomCode).emit('updateScore', { score: 10 });
-      socket.emit('chatResponse', { message: response.output_text });
+      socket.emit('chatResponse', { message: response });
     } catch (error) {
       console.error('OpenAI API error:', error);
       socket.emit('chatResponse', { 
@@ -196,9 +140,34 @@ io.on('connection', (socket) => {
       });
     }
   });
+
+  // Calculate similarity score between two strings
+  socket.on('calculateScore', async({ string1, string2 }) => {
+    try {
+      const similarity = await getVectorSimilarity(string1, string2);
+      socket.emit('scoreCalculated', { score: similarity });
+    } catch (error) {
+      console.error('Error calculating similarity:', error);
+      socket.emit('error', { 
+        title: 'Calculation Error', 
+        message: 'Failed to calculate similarity score. Please try again.' 
+      });
+    }
+  });
 });
 
 // ✅ Start server and log a message
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Socket.IO server is running on port ${PORT}`);
+async function startServer() {
+  // Initialize the pipeline first
+  await initializeServer();
+  
+  // Then start the server
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Socket.IO server is running on port ${PORT}`);
+  });
+}
+
+startServer().catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });

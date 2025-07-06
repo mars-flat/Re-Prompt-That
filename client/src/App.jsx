@@ -16,6 +16,12 @@ function App() {
   const [timer, setTimer] = useState(0);
   const [gptResponse, setGptResponse] = useState('');
   const [userInput, setUserInput] = useState('');
+  
+  // Score calculation state
+  const [string1, setString1] = useState('');
+  const [string2, setString2] = useState('');
+  const [calculatedScore, setCalculatedScore] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
     // Connection status handlers
@@ -57,6 +63,11 @@ function App() {
 
     socket.on('timerMessage', ({timer}) => {
         setTimer(timer);
+    })
+
+    socket.on('scoreCalculated', ({score}) => {
+        setCalculatedScore(score);
+        setIsCalculating(false);
     })
 
     return () => {
@@ -104,7 +115,7 @@ function App() {
   };
 
   const handleGPT = () => {
-    socket.emit('sendMessage', { message: userInput });
+    socket.emit('sendMessage', { roomCode: joinedRoom, username, message: userInput });
   }
 
   const handleChange = (event) => {
@@ -113,6 +124,17 @@ function App() {
 
   const startGame = () => {
     socket.emit('startGame', { roomCode: joinedRoom });
+  };
+
+  const handleCalculateScore = () => {
+    if (!string1.trim() || !string2.trim()) {
+      setErrorMessage('Please enter both strings');
+      return;
+    }
+    setIsCalculating(true);
+    setCalculatedScore(null);
+    setErrorMessage('');
+    socket.emit('calculateScore', { string1: string1.trim(), string2: string2.trim() });
   };
 
   return (
@@ -227,7 +249,91 @@ function App() {
         </>
       )}
 
-    
+      {/* Score Calculation Section */}
+      <div style={{ 
+        marginTop: '32px', 
+        padding: '24px', 
+        border: '2px solid #ddd', 
+        borderRadius: '8px',
+        backgroundColor: '#f9f9f9'
+      }}>
+        <h2>String Similarity Calculator</h2>
+        <p style={{ color: '#666', marginBottom: '16px' }}>
+          Enter two strings to calculate their similarity score using vector similarity.
+        </p>
+        
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+            String 1:
+          </label>
+          <textarea
+            value={string1}
+            onChange={(e) => setString1(e.target.value)}
+            placeholder="Enter first string..."
+            style={{
+              width: '100%',
+              minHeight: '80px',
+              padding: '8px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'monospace'
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+            String 2:
+          </label>
+          <textarea
+            value={string2}
+            onChange={(e) => setString2(e.target.value)}
+            placeholder="Enter second string..."
+            style={{
+              width: '100%',
+              minHeight: '80px',
+              padding: '8px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'monospace'
+            }}
+          />
+        </div>
+
+        <button
+          onClick={handleCalculateScore}
+          disabled={isCalculating || !string1.trim() || !string2.trim()}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: isCalculating ? '#ccc' : '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isCalculating ? 'not-allowed' : 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+        >
+          {isCalculating ? 'Calculating...' : 'Calculate Similarity Score'}
+        </button>
+
+        {calculatedScore !== null && (
+          <div style={{
+            marginTop: '16px',
+            padding: '16px',
+            backgroundColor: '#e8f5e8',
+            border: '1px solid #4CAF50',
+            borderRadius: '4px'
+          }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#2e7d32' }}>
+              Similarity Score: {calculatedScore.toFixed(4)}
+            </h3>
+            <p style={{ margin: '0', color: '#666', fontSize: '14px' }}>
+              Score range: 0.0 (completely different) to 1.0 (identical)
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
