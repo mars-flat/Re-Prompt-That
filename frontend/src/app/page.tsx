@@ -32,16 +32,6 @@ export default function Home() {
                 description: error.message,
             });
         });
-
-        // Cleanup function
-        return () => {
-            console.log("🧹 Cleaning up socket listeners");
-            socket.off('connect');
-            socket.off('disconnect');
-            socket.off('roomJoined');
-            socket.off('roomCreated');
-            socket.off('error');
-        };
     }, [router, toast]);
 
     const handleJoinGame = () => {
@@ -57,7 +47,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 space-y-12">
             {/* Hero Section */}
-            <div className="text-center space-y-4 animate-fade-in">
+            <div className="text-center space-y-4 animate-fade-in mt-24">
                 <div className="inline-flex items-center gap-2 text-4xl font-bold glow-primary">
                     <Code className="w-12 h-12" />
                     Re-Prompt That
@@ -98,8 +88,8 @@ export default function Home() {
                         />
                         <Button 
                             onClick={handleJoinGame} 
-                            className="w-full gradient-primary text-primary-foreground font-semibold hover:scale-105 transition-all"
-                            disabled={!roomCode.trim()}
+                            className="w-full gradient-primary text-primary-foreground font-semibold hover:scale-105 transition-all text-white"
+                            disabled={!roomCode.trim() || !joinGameUsername.trim()}
                         >
                             Join Game
                         </Button>
@@ -118,7 +108,7 @@ export default function Home() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="text-center text-sm text-muted-foreground h-10"></div>
+                        <div className="text-center text-sm text-muted-foreground h-[60px]"></div>
                         <Input
                             placeholder="Enter username..."
                             value={createGameUsername}
@@ -129,6 +119,7 @@ export default function Home() {
                         <Button 
                             onClick={handleCreateGame}
                             className="w-full bg-secondary text-secondary-foreground font-semibold hover:scale-105 transition-all glow-secondary"
+                            disabled={!createGameUsername.trim()}
                         >
                             Create New Game
                         </Button>
