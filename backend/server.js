@@ -118,18 +118,26 @@ io.on('connection', (socket) => {
   });
 
   socket.on('startGame', ({ roomCode }) => {
+    games[roomCode] = new Game(io, roomCode, rooms[roomCode]);
+    io.to(roomCode).emit('goToStartGame');
+  });
+
+  socket.on('playerReady', ({ roomCode, username }) => {
+    /*
     if (!rooms[roomCode] || rooms[roomCode].size === 0) {
       socket.emit('error', { 
-        signal: "startGame", 
+        signal: "playerR", 
         title: "Cannot start game", 
         message: 'No players in room.' 
       });
       return;
     }
-    
-    games[roomCode] = new Game(io, roomCode, rooms[roomCode]);
-    games[roomCode].startGame();
-    io.to(roomCode).emit('startGame');
+    */
+    games[roomCode].updateReadyCheck(username);
+    if(games[roomCode].isLobbyReady()){
+        io.to(roomCode).emit('startGame');
+        games[roomCode].startGame();
+    }
   });
 
   // Game-specific prompt submission with automatic scoring

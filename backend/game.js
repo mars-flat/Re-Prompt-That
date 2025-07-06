@@ -13,6 +13,7 @@ class Game {
         this.timerInterval = null;
 
         this.players = Array.from(players).map(username => new Player(username));
+        this.playersReady = new Set();
         this.allQuestions = questions.sort(() => Math.random() - 0.5);
     }
 
@@ -88,6 +89,14 @@ class Game {
             // Emit updated scores to all players
             this.io.to(this.roomCode).emit('updateScores', this.getPlayersByScoreDescending());
         }
+    }
+
+    updateReadyCheck(username){
+        this.playersReady.add(username);
+    }
+
+    isLobbyReady(){
+        return this.playersReady.size == this.players.length;
     }
 
     getPlayersByScoreDescending() {
