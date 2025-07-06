@@ -5,30 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Users, Crown, Copy, Check } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-
-interface Player {
-    id: string;
-    name: string;
-    isHost: boolean;
-    joinedAt: number;
-}
+import socket from '@/tools/mysocket';
 
 const WaitingRoom = () => {
     const params = useParams();
     const roomCode = params.roomId as string;
     const router = useRouter();
-    const [copied, setCopied] = useState(false);
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [isHost, setIsHost] = useState(false);
+    const [isHost, setIsHost] = useState(true);
     const [playerName, setPlayerName] = useState('');
+    const [copied, setCopied] = useState(false);
+    const [players, setPlayers] = useState<string[]>([]);
     const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string }[]>([]);
+
+    useEffect(() => {
+        socket.on('updateUserList', (userList: any) => {
+            console.log("User list updated", userList);
+            setPlayers(userList);
+        });
+    }, []);
+    
 
     const copyRoomCode = () => {
         navigator.clipboard.writeText(roomCode);
         setCopied(true);
     };
 
-    const canStartGame = players.length >= 2 && isHost;
+    const canStartGame = players.length >= 2;
 
     const onStartGame = () => {
         console.log('Starting game');

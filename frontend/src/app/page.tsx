@@ -9,11 +9,8 @@ import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { useToast } from "@/hooks/use-toast";
 import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
-
-const socket = io('http://localhost:4000', {
-    transports: ['websocket', 'polling']
-});
-
+import socket from "@/tools/mysocket";
+    
 export default function Home() {
     const [roomCode, setRoomCode] = useState("");
     const [joinGameUsername, setJoinGameUsername] = useState("");
@@ -35,7 +32,17 @@ export default function Home() {
                 description: error.message,
             });
         });
-    }, []);
+
+        // Cleanup function
+        return () => {
+            console.log("🧹 Cleaning up socket listeners");
+            socket.off('connect');
+            socket.off('disconnect');
+            socket.off('roomJoined');
+            socket.off('roomCreated');
+            socket.off('error');
+        };
+    }, [router, toast]);
 
     const handleJoinGame = () => {
         console.log("Joining game with code:", roomCode);
