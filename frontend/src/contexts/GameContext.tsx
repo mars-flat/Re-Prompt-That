@@ -25,6 +25,8 @@ interface GameContextType {
     setProgressPercentage: (progressPercentage: number) => void;
     score: number;
     leaderboard: {username: string, score: number}[];
+    canSubmitPrompt: boolean;
+    setCanSubmitPrompt: (canSubmitPrompt: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -45,6 +47,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [leaderboard, setLeaderboard] = useState<{username: string, score: number}[]>([]);
     const [isHost, setIsHost] = useState<boolean>(true);
     const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
+    const [canSubmitPrompt, setCanSubmitPrompt] = useState<boolean>(false);
 
     // Game state variables
     const [round, setRound] = useState(1);
@@ -91,6 +94,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setLeaderboard(initialLeaderboard);
                 return currentPlayers;
             });
+            setCanSubmitPrompt(true);
         });
 
         socket.on("timerMessage", (timeLeft: number) => {
@@ -102,12 +106,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Prompt scored:", score, leaderboard, aiResponse, userPrompt);
             setLeaderboard(leaderboard);
             setScore(score);
+            setCanSubmitPrompt(false);
+            toast({
+                title: `You scored ${score} points!`,
+                description: `${aiResponse}`,
+                variant: "default",
+            });
         });
 
         socket.on("scoreUpdate", ({username, leaderboard, score}) => {
             console.log("Score update received:", username, leaderboard, score);
             setLeaderboard(leaderboard);
             setScore(score);
+            setCanSubmitPrompt(true);
+            toast({
+                title: `Updated Results`,
+                description: `${username} scored ${score} points!`,
+                variant: "default",
+            });
         });
 
         socket.on("gameEnd", () => {
@@ -145,6 +161,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProgressPercentage,
         score,
         leaderboard,
+        canSubmitPrompt,
+        setCanSubmitPrompt,
     };
 
     return (

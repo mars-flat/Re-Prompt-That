@@ -130,7 +130,7 @@ export default function Home() {
                             <span className="text-xl font-bold text-primary">1</span>
                         </div>
                         <h3 className="font-semibold">See the Target</h3>
-                        <p className="text-sm text-muted-foreground">You'll be shown a target string that needs to be generated</p>
+                        <p className="text-sm text-muted-foreground">Read the generated output string</p>
                     </div>
                     <div className="space-y-2">
                         <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mx-auto">
@@ -144,7 +144,7 @@ export default function Home() {
                             <span className="text-xl font-bold text-accent">3</span>
                         </div>
                         <h3 className="font-semibold">Score Points</h3>
-                        <p className="text-sm text-muted-foreground">Get points based on how likely your prompt would generate the target</p>
+                        <p className="text-sm text-muted-foreground">Get points based on how similar your prompt is to the original prompt</p>
                     </div>
                 </CardContent>
             </Card>
