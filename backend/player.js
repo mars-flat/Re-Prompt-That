@@ -7,3 +7,5 @@ class Player {
         this.responses = [];
     }
 }
+
+module.exports = Player;

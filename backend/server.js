@@ -1,7 +1,7 @@
 const { Server } = require('socket.io');
 const OpenAI = require("openai");
 const Game = require('./game');
-const { initializePipeline, getVectorSimilarity } = require('./tools/getVectorSimilarity');
+const { initializePipeline } = require('./tools/getVectorSimilarity');
 const { getScore } = require('./tools/getScore.js');
 const { createHttpServer } = require('./httpHandler');
 const { queryGPT } = require('./tools/gptQuery.js');
@@ -33,13 +33,13 @@ let pipelineInitialized = false;
 
 async function initializeServer() {
   try {
-    console.log('🚀 Initializing server...');
+    console.log('Initializing server...');
     await initializePipeline();
     pipelineInitialized = true;
-    console.log('✅ Pipeline initialized successfully');
+    console.log('Pipeline initialized successfully');
   } catch (error) {
-    console.error('❌ Failed to initialize pipeline:', error);
-    console.log('⚠️  Server will continue without vector similarity features');
+    console.error('Failed to initialize pipeline:', error);
+    console.log('Server will continue without vector similarity features');
   }
 }
 
@@ -58,6 +58,7 @@ io.on('connection', (socket) => {
     console.log(socket.rooms, roomCode, io.sockets.adapter.rooms);
     const roomSockets = io.sockets.adapter.rooms.get(roomCode);
     console.log("Socket IDs in room:", Array.from(roomSockets || []));
+    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
     console.log("User list updated", Array.from(rooms[roomCode]));
   });
 
@@ -67,7 +68,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('joinRoom', ({ roomCode, username }) => {
-    console.log(`🔄 Attempting to join room: ${roomCode} with username: ${username}`);
+    console.log(`Attempting to join room: ${roomCode} with username: ${username}`);
     
     // if game started
     if (games[roomCode] && games[roomCode].started) {
@@ -78,14 +79,14 @@ io.on('connection', (socket) => {
 
     // if room not found
     if (!rooms[roomCode]) {
-      console.log("❌ Room not found:", roomCode);
+      console.log("Room not found:", roomCode);
       socket.emit('error', { signal: "joinRoom", title: "Room not found", message: 'Please create a new room.' });
       return;
     }
 
     // if username already exists
     if (rooms[roomCode].has(username)) {
-      console.log("❌ Username already exists:", username);
+      console.log("Username already exists:", username);
       socket.emit('error', { signal: "joinRoom", title: "Username already exists", message: 'Please choose a different username.' });
       return;
     }
@@ -94,23 +95,23 @@ io.on('connection', (socket) => {
     socket.join(roomCode);
     socket.data.username = username;
     socket.data.roomCode = roomCode;
-    console.log(`✅ User ${username} joined room ${roomCode}`);
+    console.log(`User ${username} joined room ${roomCode}`);
     socket.emit('roomJoined', { roomCode });
     console.log(socket.rooms);
     io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
-    console.log("📋 User list updated for room", roomCode, ":", Array.from(rooms[roomCode]));
+    console.log("User list updated for room", roomCode, ":", Array.from(rooms[roomCode]));
   });
 
   socket.on('disconnect', () => {
     const { username, roomCode } = socket.data || {};
     if (username && roomCode && rooms[roomCode]) {
-      console.log(`🔌 User ${username} disconnected from room ${roomCode}`);
+      console.log(`User ${username} disconnected from room ${roomCode}`);
       rooms[roomCode].delete(username);
       if (rooms[roomCode].size === 0) {
-        console.log(`🗑️ Room ${roomCode} is empty, deleting it`);
+        console.log(`Room ${roomCode} is empty, deleting it`);
         delete rooms[roomCode];
       } else {
-        console.log(`📋 Updating user list for room ${roomCode}:`, Array.from(rooms[roomCode]));
+        console.log(`Updating user list for room ${roomCode}:`, Array.from(rooms[roomCode]));
         io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
       }
     }
@@ -147,7 +148,7 @@ io.on('connection', (socket) => {
   // Calculate similarity score between two strings
   socket.on('calculateScore', async({ string1, string2 }) => {
     try {
-      const similarity = await getVectorSimilarity(string1, string2);
+      const similarity = await getScore(string1, string2);
       socket.emit('scoreCalculated', { score: similarity });
     } catch (error) {
       console.error('Error calculating similarity:', error);
@@ -159,14 +160,14 @@ io.on('connection', (socket) => {
   });
 });
 
-// ✅ Start server and log a message
+// Start server and log a message
 async function startServer() {
   // Initialize the pipeline first
   await initializeServer();
   
   // Then start the server
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Socket.IO server is running on port ${PORT}`);
+    console.log(`Socket.IO server is running on port ${PORT}`);
   });
 }
 
