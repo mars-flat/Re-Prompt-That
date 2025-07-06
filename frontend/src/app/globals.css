@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Gaming-inspired design system with neon accents and dark theme */
+/* Design system with neon accents, dark theme */
 @layer base {
   :root {
     --background: 220 13% 9%;
@@ -159,7 +159,13 @@
       animation: logo-spin infinite 20s linear;
     }
   }
-
+  @keyframes runAround {
+    0% {transform: translateX(0);}
+    25% {transform: translateX(200px); /* move to the right */}
+    75% {transform: translateX(-200px); /* move to the left */}
+    100% {transform: translateX(0);}
+  }
+  
   /* Utility classes */
   .app-container {
     max-width: 1280px;

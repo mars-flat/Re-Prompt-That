@@ -98,10 +98,18 @@ const WaitingRoom = () => {
                         <div className="text-center space-y-4 animate-pulse">
                         <div className="w-32 h-32 bg-gradient-primary rounded-full mx-auto opacity-20 animate-glow"></div>
                         <div className="space-y-2">
-                            <div className="h-4 bg-primary/20 rounded w-48 mx-auto"></div>
-                            <div className="h-4 bg-accent/20 rounded w-32 mx-auto"></div>
+                            {/* <div className="h-4 bg-primary/20 rounded w-48 mx-auto"></div> */}
+                            {/* <div className="h-4 bg-accent/20 rounded w-32 mx-auto"></div> */}
                         </div>
                         </div>
+
+                         {/* DOG ANIMATION!! */}
+                        <img
+                            src="/dog.gif"
+                            alt="dog"
+                            className="absolute top-1/3 left-1/3 w-48 h-auto pointer-events-none"
+                            style={{ animation: 'runAround 2s linear infinite' }}
+                        />  
                         
                         {/* Floating particles animation */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -119,10 +127,6 @@ const WaitingRoom = () => {
                         ))}
                         </div>
 
-                        {/* Your Animation Goes Here */}
-                        <div className="absolute bottom-4 right-4 text-xs text-muted-foreground/50">
-                        Animation Area
-                        </div>
                     </div>
                     </Card>
                 </div>
@@ -205,7 +209,7 @@ const WaitingRoom = () => {
                     <Card className="p-4 bg-card border-border shadow-card">
                     <h4 className="font-bold text-electric-blue glow-primary mb-2">Game Rules</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• 2-8 players can join</li>
+                        <li>• 2-4 players can join</li>
                         <li>• Write prompts that generate target strings</li>
                         <li>• Closer matches = higher scores</li>
                         <li>• Multiple rounds of competition</li>
@@ -216,6 +220,7 @@ const WaitingRoom = () => {
             </div>
         </div>
     );
+    
 };
 
 export default WaitingRoom;
