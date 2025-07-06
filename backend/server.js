@@ -135,7 +135,6 @@ io.on('connection', (socket) => {
     */
     games[roomCode].updateReadyCheck(username);
     if(games[roomCode].isLobbyReady()){
-        io.to(roomCode).emit('startGame');
         games[roomCode].startGame();
     }
   });
