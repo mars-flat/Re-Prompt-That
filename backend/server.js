@@ -58,10 +58,12 @@ io.on('connection', (socket) => {
     console.log(socket.rooms, roomCode, io.sockets.adapter.rooms);
     const roomSockets = io.sockets.adapter.rooms.get(roomCode);
     console.log("Socket IDs in room:", Array.from(roomSockets || []));
-    
-    io.to(roomCode).emit('updateUserList', "hi");
     console.log("User list updated", Array.from(rooms[roomCode]));
   });
+
+  socket.on('getUserList', ({ roomCode }) => {
+    io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
+  })
 
   socket.on('joinRoom', ({ roomCode, username }) => {
     console.log(`🔄 Attempting to join room: ${roomCode} with username: ${username}`);
