@@ -1,6 +1,8 @@
 # Re-Prompt-That
 Re-Prompt That (RPT) is a fast-paced, brain-teaser game that helps users improve their AI prompting skills through real-time challenges, instant feedback, and a competitive social learning environment. RPT provides users with ChatGPT's output from an unknown prompt, and users are then challenged to guess what the prompt is. The closer they are, the more points they get. Through multiple rounds of games, users can better understand the tone and format that ChatGPT uses, helping them prompt better.
 
+Hack404 (2025) submission. 
+
 ## Inspiration
 As AI tools like ChatGPT become more powerful, the ability to prompt effectively is becoming essential. Entire job roles like prompt engineering have emerged. However, most people struggle with it — they don’t know what to ask, how to ask it, or why some prompts work better than others.
 
