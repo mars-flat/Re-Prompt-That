@@ -9,6 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { Trophy, Clock, Target, Send, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParams } from "next/navigation";
+import emitWithErrorHandling from "@/tools/emitWithErrorHandling";
+import socket from "@/tools/mysocket";
+import { useGame } from "@/contexts/GameContext";
 
 // Mock data for demonstration
 const TARGET_STRINGS = [
@@ -32,13 +35,16 @@ const Game = () => {
   const [prompt, setPrompt] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
   const [round, setRound] = useState(1);
-  const [players, setPlayers] = useState<Player[]>([
-    { id: "1", name: "You", score: 0 },
-    { id: "2", name: "Alice", score: 0 },
-    { id: "3", name: "Bob", score: 0 },
-    { id: "4", name: "Charlie", score: 0 }
-  ]);
+
   const [isGameActive, setIsGameActive] = useState(true);
+  const { username, setUsername, players, setPlayers, isHost, setIsHost, gameState } = useGame();
+
+  useEffect(() => {
+    console.log("Players", players);
+    console.log("Username", username);
+    console.log("Is Host", isHost);
+    console.log("Game State", gameState);
+  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -57,57 +63,12 @@ const Game = () => {
     return () => clearInterval(timer);
   }, [isGameActive, timeLeft]);
 
-  // Simulate other players submitting prompts
-  useEffect(() => {
-    if (!isGameActive) return;
-    
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        simulatePlayerSubmission();
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [isGameActive, round]);
-
-  const simulatePlayerSubmission = () => {
-    const botNames = ["Alice", "Bob", "Charlie"];
-    const availableBot = players.find(p => botNames.includes(p.name) && !p.lastPrompt);
-    
-    if (availableBot) {
-      const mockPrompts = [
-        "Generate a sentence about animals",
-        "Write something philosophical",
-        "Create a greeting message",
-        "Describe the future optimistically",
-        "Explain AI technology"
-      ];
-      
-      setPlayers(prev => prev.map(p => 
-        p.id === availableBot.id 
-          ? { ...p, lastPrompt: mockPrompts[Math.floor(Math.random() * mockPrompts.length)] }
-          : p
-      ));
-    }
-  };
-
+  
   const handleSubmitPrompt = () => {
     if (!prompt.trim()) return;
 
-    // Simple scoring algorithm (in a real game, this would use AI to evaluate)
-    const similarity = calculateSimilarity(prompt, currentTarget);
-    const score = Math.floor(similarity * 100);
+    emitWithErrorHandling(socket, 'sendMessage', { message: prompt });
 
-    setPlayers(prev => prev.map(p => 
-      p.id === "1" 
-        ? { ...p, score: p.score + score, lastPrompt: prompt }
-        : p
-    ));
-
-    toast({
-      title: "Prompt Submitted!",
-      description: `You scored ${score} points for this round!`
-    });
 
     setPrompt("");
   };
@@ -239,7 +200,7 @@ const Game = () => {
               <CardContent className="space-y-3">
                 {sortedPlayers.map((player, index) => (
                   <div 
-                    key={player.id}
+                    key={index}
                     className={`flex items-center justify-between p-3 rounded-lg transition-all ${
                       player.id === "1" ? 'bg-primary/10 border border-primary/20' : 'bg-muted/20'
                     } ${index === 0 ? 'glow-success animate-glow-pulse' : ''}`}

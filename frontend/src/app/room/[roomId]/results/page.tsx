@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import emitWithErrorHandling from '@/tools/emitWithErrorHandling';
 import socket from '@/tools/mysocket';
 import Image from "next/image";
+import { useGame } from '@/contexts/GameContext';
 
 interface PlayerScore {
     name: string;
@@ -19,7 +20,6 @@ const ResultsPage = () => {
     const params = useParams();
     const roomCode = params.roomId as string;
     const router = useRouter();
-    const [playerName, setPlayerName] = useState('');
     const [leaderboard, setLeaderboard] = useState<PlayerScore[]>([
         { name: "Alice", score: 850, totalRounds: 5 },
         { name: "Bob", score: 720, totalRounds: 5 },
@@ -27,8 +27,15 @@ const ResultsPage = () => {
         { name: "Diana", score: 580, totalRounds: 5 },
     ]);
     const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string }[]>([]);
+    
+    // Use game context
+    const { username, setRoomCode, setGameState } = useGame();
 
     useEffect(() => {
+        // Set room code in context
+        setRoomCode(roomCode);
+        setGameState('results');
+
         // TODO: Get actual game results from server
         emitWithErrorHandling(socket, 'getGameResults', { roomCode: roomCode });
 
@@ -37,11 +44,10 @@ const ResultsPage = () => {
             setLeaderboard(results);
         });
 
-        socket.on("getUsername", (username: any) => {
-            console.log("My user updated", username);
-            setPlayerName(username);
-        });
-    }, []);
+        return () => {
+            socket.off('gameResults');
+        };
+    }, [roomCode, setRoomCode, setGameState]);
 
     const getPositionIcon = (index: number) => {
         switch (index) {
@@ -157,10 +163,10 @@ const ResultsPage = () => {
                                             </div>
                                             <div>
                                                 <div className={`font-semibold ${
-                                                    player.name === playerName ? 'text-primary' : 'text-foreground'
+                                                    player.name === username ? 'text-primary' : 'text-foreground'
                                                 }`}>
                                                     {player.name}
-                                                    {player.name === playerName && ' (You)'}
+                                                    {player.name === username && ' (You)'}
                                                 </div>
                                                 <div className="text-sm text-muted-foreground">
                                                     {player.score} pts

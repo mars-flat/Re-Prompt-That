@@ -8,32 +8,36 @@ import { useParams, useRouter } from 'next/navigation';
 import emitWithErrorHandling from '@/tools/emitWithErrorHandling';
 import socket from '@/tools/mysocket';
 import Image from "next/image";
+import { useGame } from '@/contexts/GameContext';
 
 const WaitingRoom = () => {
     const params = useParams();
     const roomCode = params.roomId as string;
     const router = useRouter();
-    const [isHost, setIsHost] = useState(true);
-    const [playerName, setPlayerName] = useState('');
     const [copied, setCopied] = useState(false);
-    const [players, setPlayers] = useState<string[]>([]);
     const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string }[]>([]);
+    
+    // Use game context
+    const { username, setUsername, players, setPlayers, isHost, setIsHost, setRoomCode, gameState } = useGame();
 
     useEffect(() => {
+        // Set room code in context
+        setRoomCode(roomCode);
 
         emitWithErrorHandling(socket, 'getUserList', { roomCode: roomCode });
 
-        socket.on('updateUserList', (userList: any) => {
-            console.log("User list updated", userList);
-            setPlayers(userList);
+        // Note: updateUserList and getUsername are now handled by GameContext
+        // but we still need the startGame listener for navigation
+        socket.on("startGame", () => {
+            console.log("Starting game");
+            router.push(`/room/${roomCode}/play`);
         });
 
-        socket.on("getUsername", (username: any) => {
-            console.log("My user updated", username);
-            setPlayerName(username);
-        });
-    }, []);
-    
+        return () => {
+            socket.off("startGame");
+        };
+    }, [roomCode, setRoomCode, router]);
+   
 
     const copyRoomCode = () => {
         navigator.clipboard.writeText(roomCode);
@@ -43,7 +47,7 @@ const WaitingRoom = () => {
     const canStartGame = players.length >= 2;
 
     const onStartGame = () => {
-        console.log('Starting game');
+        emitWithErrorHandling(socket, 'startGame', { roomCode: roomCode });
     };
 
     const onLeaveRoom = () => {
@@ -157,17 +161,17 @@ const WaitingRoom = () => {
                         <div
                             key={index}
                             className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 animate-fade-in ${
-                                player === playerName ? 'bg-neon-green/20 border border-neon-green/30' :
+                                player === username ? 'bg-neon-green/20 border border-neon-green/30' :
                             'bg-muted/20 border border-muted/30'
                             }`}
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div className="flex items-center gap-3">
                             <span className={`font-medium ${
-                                player === playerName ? 'text-foreground font-bold' : 'text-foreground'
+                                player === username ? 'text-foreground font-bold' : 'text-foreground'
                             }`}>
                                 {player}
-                                {player === playerName && ' (You)'}
+                                {player === username && ' (You)'}
                             </span>
                             </div>
                         </div>
