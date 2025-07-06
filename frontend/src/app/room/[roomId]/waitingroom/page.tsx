@@ -147,26 +147,20 @@ const WaitingRoom = () => {
                     <div className="space-y-2 max-h-80 overflow-y-auto">
                         {players.map((player, index) => (
                         <div
-                            key={player.id}
+                            key={index}
                             className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 animate-fade-in glow-success ${
-                            player.name === playerName ? 'bg-neon-green border border-neon-green/30' : 'bg-neon-green/80'
+                            player === playerName ? 'bg-neon-green border border-neon-green/30' : 'bg-neon-green/80'
                             }`}
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div className="flex items-center gap-3">
-                            {player.isHost && (
-                                <Crown className="h-4 w-4 text-warning-orange glow-primary" />
-                            )}
                             <span className={`font-medium ${
-                                player.name === playerName ? 'text-background font-bold' : 'text-background'
+                                player === playerName ? 'text-background font-bold' : 'text-background'
                             }`}>
-                                {player.name}
-                                {player.name === playerName && ' (You)'}
+                                {player}
+                                {player === playerName && ' (You)'}
                             </span>
                             </div>
-                            {player.isHost && (
-                            <span className="text-xs text-background font-bold">HOST</span>
-                            )}
                         </div>
                         ))}
                         
