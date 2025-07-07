@@ -6,7 +6,7 @@ let pipe = null;
 async function initializePipeline() {
     if (!pipe) {
         console.log('Loading pipeline...');
-        pipe = await pipeline('feature-extraction', 'mixedbread-ai/mxbai-embed-large-v1');
+        pipe = await pipeline('feature-extraction', 'mixedbread-ai/mxbai-embed-xsmall-v1');
         console.log('Pipeline loaded');
     }
     return pipe;
