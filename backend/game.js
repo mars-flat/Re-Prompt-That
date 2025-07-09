@@ -14,7 +14,8 @@ class Game {
 
         this.players = Array.from(players).map(username => new Player(username));
         this.playersReady = new Set();
-        this.allQuestions = questions.sort(() => Math.random() - 0.5);
+        // Use the original questions array - we'll randomly select from it
+        this.allQuestions = questions;
         this.queriesActive = 0;
     }
 
@@ -31,7 +32,8 @@ class Game {
         this.active = true;
         this.started = true;
         this.timer = 60; // Explicitly set timer
-        this.currentQuestion = this.allQuestions.pop();
+        // Randomly select a question without removing it from the list
+        this.currentQuestion = this.allQuestions[Math.floor(Math.random() * this.allQuestions.length)];
         this.io.to(this.roomCode).emit('gameStarted', this.currentQuestion);
         
         console.log('Timer starting at:', this.timer);
