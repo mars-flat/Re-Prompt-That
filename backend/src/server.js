@@ -1,11 +1,11 @@
 const { Server } = require('socket.io');
 const OpenAI = require("openai");
-const { logMessage, logError } = require('./tools/loggingTools.js');
-const { State } = require('./state.js');
-const Game = require('./game');
-const { initializePipeline } = require('./tools/getVectorSimilarity');
-const { createHttpServer } = require('./httpHandler');
-const { queryGPT } = require('./tools/gptQuery.js');
+const { logMessage, logError } = require('./utils/loggingTools.js');
+const { Events } = require('./socket/events.js');
+const Game = require('./game/game.js');
+const { initializePipeline } = require('./utils/getVectorSimilarity.js');
+const { createHttpServer } = require('./routes/httpHandler.js');
+const { queryGPT } = require('./utils/gptQuery.js');
 require('dotenv').config();
 
 const PORT = 4000;
@@ -23,7 +23,7 @@ const hasOpenAIKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.tr
 const client = hasOpenAIKey ? new OpenAI() : null;
 
 if (!hasOpenAIKey) {
-  logMessage(State.INITIALIZING, '⚠️  Warning: OPENAI_API_KEY not found. AI features will be disabled.');
+  logMessage(Events.initializing, '⚠️  Warning: OPENAI_API_KEY not found. AI features will be disabled.');
 }
 
 const rooms = {}; // roomCode -> Set of usernames
@@ -34,12 +34,12 @@ let pipelineInitialized = false;
 
 async function initializeServer() {
   try {
-    logMessage(State.INITIALIZING, 'Initializing server...');
+    logMessage(Events.initializing, 'Initializing server...');
     await initializePipeline();
     pipelineInitialized = true;
-    logMessage(State.INITIALIZING, 'Pipeline initialized successfully');
+    logMessage(Events.initializing, 'Pipeline initialized successfully');
   } catch (error) {
-    logError(State.INITIALIZING, 'Failed to initialize pipeline. Server will continue without vector similarity:', error);
+    logError(Events.initializing, 'Failed to initialize pipeline. Server will continue without vector similarity:', error);
   }
 }
 
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
    * 
    * Called when the client creates a room
    */
-  socket.on(State.CREATE_ROOM, ({ username }) => {
+  socket.on(Events.createRoom, ({ username }) => {
 
     let roomCode = generateRoomCode();
     while(rooms[roomCode]){
@@ -68,9 +68,9 @@ io.on('connection', (socket) => {
     socket.data.roomCode = roomCode;
     socket.emit('roomJoined', { roomCode });
 
-    logMessage(State.CREATE_ROOM, socket.rooms, roomCode, io.sockets.adapter.rooms);
+    logMessage(Events.createRoom, socket.rooms, roomCode, io.sockets.adapter.rooms);
     const roomSockets = io.sockets.adapter.rooms.get(roomCode);
-    logMessage(State.CREATE_ROOM, "Socket IDs in room:", Array.from(roomSockets || []));
+    logMessage(Events.createRoom, "Socket IDs in room:", Array.from(roomSockets || []));
 
   });
 
@@ -80,10 +80,10 @@ io.on('connection', (socket) => {
    * 
    * Called when the client wants to get the user list for a room
    */
-  socket.on(State.GET_USER_LIST, ({ roomCode }) => {
+  socket.on(Events.getUserList, ({ roomCode }) => {
 
     io.to(roomCode).emit('updateUserList', Array.from(rooms[roomCode]));
-    logMessage(State.GET_USER_LIST, "Current user list:", Array.from(rooms[roomCode]));
+    logMessage(Events.getUserList, "Current user list:", Array.from(rooms[roomCode]));
     socket.emit('getUsername', socket.data.username);
 
   })
@@ -96,27 +96,27 @@ io.on('connection', (socket) => {
    *  - Updates the user list for the room
    *  - Sends the update to everyone in the room
    */
-  socket.on(State.JOIN_ROOM, ({ roomCode, username }) => {
+  socket.on(Events.joinRoom, ({ roomCode, username }) => {
 
-    logMessage(State.JOIN_ROOM, `Attempting to join room: ${roomCode} with username: ${username}`);
+    logMessage(Events.joinRoom, `Attempting to join room: ${roomCode} with username: ${username}`);
     
     // if game started
     if (games[roomCode] && games[roomCode].started) {
-      logMessage(State.JOIN_ROOM, "Game already started");
+      logMessage(Events.joinRoom, "Game already started");
       socket.emit('error', { signal: "joinRoom", title: "Game already started", message: 'Please wait for the next game.' });
       return;
     }
 
     // if room not found
     if (!rooms[roomCode]) {
-      logMessage(State.JOIN_ROOM, "Room not found:", roomCode);
+      logMessage(Events.joinRoom, "Room not found:", roomCode);
       socket.emit('error', { signal: "joinRoom", title: "Room not found", message: 'Please create a new room.' });
       return;
     }
 
     // if username already exists
     if (rooms[roomCode].has(username)) {
-      logMessage(State.JOIN_ROOM, "Username already exists:", username);
+      logMessage(Events.joinRoom, "Username already exists:", username);
       socket.emit('error', { signal: "joinRoom", title: "Username already exists", message: 'Please choose a different username.' });
       return;
     }
@@ -125,9 +125,9 @@ io.on('connection', (socket) => {
     socket.join(roomCode);
     socket.data.username = username;
     socket.data.roomCode = roomCode;
-    logMessage(State.JOIN_ROOM, `User ${username} joined room ${roomCode}`);
+    logMessage(Events.joinRoom, `User ${username} joined room ${roomCode}`);
     socket.emit('roomJoined', { roomCode });
-    logMessage(State.JOIN_ROOM, socket.rooms);
+    logMessage(Events.joinRoom, socket.rooms);
 
   });
 

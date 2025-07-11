@@ -1,4 +1,4 @@
-const { getScore } = require('./tools/getScore.js');
+const { getScore } = require('../utils/getScore.js');
 const questions = require('./questions.js');
 const Player = require('./player.js');
 
