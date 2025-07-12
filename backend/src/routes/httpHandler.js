@@ -70,4 +70,4 @@ function createHttpServer(PORT) {
     });
 }
 
-module.exports = { createHttpServer }; 
+module.exports = createHttpServer; 

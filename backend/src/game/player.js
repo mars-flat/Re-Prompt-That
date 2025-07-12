@@ -1,3 +1,6 @@
+/**
+ * A player in the game. Stores player data.
+ */
 class Player {
     
     constructor(username) {
@@ -6,6 +9,7 @@ class Player {
         this.messages = [];
         this.responses = [];
     }
+    
 }
 
 module.exports = Player;

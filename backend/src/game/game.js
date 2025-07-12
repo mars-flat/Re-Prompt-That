@@ -2,6 +2,9 @@ const { getScore } = require('../utils/getScore.js');
 const questions = require('./questions.js');
 const Player = require('./player.js');
 
+/**
+ * Stores game data.
+ */
 class Game {
 
     constructor(io, roomCode, players) {
