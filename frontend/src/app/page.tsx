@@ -1,6 +1,6 @@
 "use client"
 
-import { Code, Users, Zap } from "lucide-react";
+import { Users, Zap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

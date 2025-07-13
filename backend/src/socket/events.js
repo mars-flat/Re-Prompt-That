@@ -16,7 +16,22 @@ const Events = {
     joinRoom: "joinRoom",
 
     /* disconnecting from the lobby */
-    disconnectLobby: "disconnectLobby"
+    disconnectLobby: "disconnectLobby",
+
+    /* starting a game */
+    startGame: "startGame",
+
+    /* player ready check */
+    playerReady: "playerReady",
+
+    /* rejoining the lobby after the game ends */
+    gameEndRejoin: "gameEndRejoin",
+    
+    /* getting a sorted list ofgame scores */
+    getGameResults: "getGameResults",
+
+    /* submitting a prompt to GPT */
+    submitPrompt: "submitPrompt",
     
 };
 

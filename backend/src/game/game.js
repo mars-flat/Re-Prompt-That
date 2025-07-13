@@ -1,4 +1,4 @@
-const { getScore } = require('../utils/getScore.js');
+const getScore = require('../utils/getScore.js');
 const questions = require('./questions.js');
 const Player = require('./player.js');
 
@@ -17,6 +17,7 @@ class Game {
 
         this.players = Array.from(players).map(username => new Player(username));
         this.playersReady = new Set();
+        this.pendingPlayers = new Set();
         // Use the original questions array - we'll randomly select from it
         this.allQuestions = questions;
         this.queriesActive = 0;
@@ -138,7 +139,6 @@ class Game {
     }
 
     leaveGame(username){
-        // this.players = this.players.filter(player => player.username !== username);
         if (this.playersReady.has(username)){
             this.playersReady.delete(username);
         }
@@ -163,6 +163,14 @@ class Game {
 
     isGameActive() {
         return this.active && this.started;
+    }
+
+    arePlayersPending(){
+        return this.playersPending.size > 0;
+    }
+
+    removePendingPlayer(username){
+        this.playersPending.delete(username);
     }
 }
 

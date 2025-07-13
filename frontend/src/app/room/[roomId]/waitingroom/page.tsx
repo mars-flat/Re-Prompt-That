@@ -58,7 +58,7 @@ const WaitingRoom = () => {
 
     // Generate particles on client-side only to avoid hydration mismatch
     useEffect(() => {
-        const generatedParticles = Array.from({ length: 6 }, (_, i) => ({
+        const generatedParticles = Array.from({ length: 12 }, (_, i) => ({
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             delay: `${i * 0.5}s`,
@@ -120,9 +120,11 @@ const WaitingRoom = () => {
                         </div>
 
                          {/* DOG ANIMATION!! */}
-                        <img
+                        <Image
                             src="/dog.gif"
-                            alt="dog"
+                            alt="Big Gurt"
+                            width={300}
+                            height={300}
                             className="absolute top-1/3 left-1/3 w-48 h-auto pointer-events-none"
                             style={{ animation: 'runAround 2s linear infinite' }}
                         />  

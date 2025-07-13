@@ -36,9 +36,9 @@ const ResultsPage = () => {
         socket.on('gameResults', ({ results }) => {
             console.log("Game results received", results);
             setLeaderboard(results);
-        });
 
-        emitWithErrorHandling(socket, 'leaveLobby', { roomCode: roomCode, username: username });
+            emitWithErrorHandling(socket, 'disconnectLobby', { roomCode: roomCode, username: username });
+        });
 
         return () => {
             socket.off('gameResults');
@@ -56,7 +56,7 @@ const ResultsPage = () => {
 
     const onPlayAgain = () => {
         console.log('Play again');
-        emitWithErrorHandling(socket, 'joinRoom', { roomCode: roomCode, username: username });
+        emitWithErrorHandling(socket, 'gameEndRejoin', { roomCode: roomCode, username: username });
         router.push(`/room/${roomCode}/waitingroom`);
     };
 
