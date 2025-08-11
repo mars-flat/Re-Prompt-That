@@ -9,12 +9,11 @@ permissions:
   contents: write
 
 env:
-  # CHANGE THESE TWO to the original repo you forked from
   UPSTREAM_OWNER: AAZZAZRON
   UPSTREAM_REPO: Re-Prompt-That
-  # If the upstream default branch is not "main", set it here
+  # If upstream default branch is not "main", set it here
   UPSTREAM_BRANCH: main
-  # Your fork's branch to sync. Default branch of this repo:
+  # Your fork's branch to sync (default branch of this repo)
   TARGET_BRANCH: ${{ github.event.repository.default_branch }}
 
 jobs:
@@ -34,9 +33,6 @@ jobs:
 
       - name: Add upstream remote
         run: |
-          # If upstream is private, create a secret named UPSTREAM_TOKEN with repo scope,
-          # then uncomment the tokened URL and comment out the https URL.
-          # UPSTREAM_URL="https://${UPSTREAM_TOKEN}@github.com/${UPSTREAM_OWNER}/${UPSTREAM_REPO}.git"
           UPSTREAM_URL="https://github.com/${UPSTREAM_OWNER}/${UPSTREAM_REPO}.git"
           git remote add upstream "$UPSTREAM_URL" || git remote set-url upstream "$UPSTREAM_URL"
 
@@ -45,7 +41,7 @@ jobs:
           git fetch --prune origin
           git fetch --prune upstream
 
-      - name: Ensure we are on target branch and up to date with our origin
+      - name: Ensure we are on target branch and up to date with origin
         run: |
           git checkout "${TARGET_BRANCH}"
           git reset --hard "origin/${TARGET_BRANCH}"
@@ -53,17 +49,19 @@ jobs:
       - name: Rebase fork on top of upstream
         run: |
           set -e
-          # This keeps your fork linear on top of upstream
           git rebase "upstream/${UPSTREAM_BRANCH}" || {
-            echo "::warning::Rebase hit conflicts. Aborting rebase."
+            echo "::warning::Rebase hit conflicts. Aborting."
             git rebase --abort
             exit 1
           }
 
       - name: Push updated branch to fork
         run: |
-          # Fast forward most days. If you have local commits, they will be rebased.
-          git push origin "${TARGET_BRANCH}"
+          # Try normal push first
+          if ! git push origin "${TARGET_BRANCH}"; then
+            echo "::warning::Normal push failed, attempting force-with-lease."
+            git push --force-with-lease origin "${TARGET_BRANCH}"
+          fi
 
       - name: Tag run (optional)
         if: always()
