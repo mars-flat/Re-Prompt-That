@@ -5,7 +5,7 @@ const { initializePipeline } = require('./utils/getVectorSimilarity.js');
 const Events = require("./socket/events.js");
 const createHttpServer = require('./routes/httpHandler.js');
 const setUpSocketServer = require('./socket/socket.js');
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config({ path: './.env' });
 
 
 const PORT = 4000;
