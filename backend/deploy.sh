@@ -3,8 +3,8 @@ set -e
 
 echo "Starting deployment at $(date)"
 
-# Navigate to project root
-cd ~/re-prompt-that
+# Navigate to backend folder
+cd ~/Re-Prompt-That/backend
 
 # Pull latest code
 echo "Pulling latest code..."
