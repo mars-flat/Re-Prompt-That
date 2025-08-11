@@ -16,4 +16,4 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          ~/re-prompt-that/backend/deploy.sh
+          ~/Re-Prompt-That/backend/deploy.sh
